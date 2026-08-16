@@ -21,8 +21,8 @@
 
 | 서브 프로젝트 | 아키텍처 / 기술 스택 | 에이전트 가이드라인 |
 |---|---|---|
-| **Backend** (`backend/`) | Clean Architecture, FastAPI, `uv`, pytest | [Backend AGENTS.md](backend/AGENTS.md) |
-| **Frontend** (`frontend/`) | Feature-Sliced Design (FSD), React, TypeScript, `npm` | [Frontend AGENTS.md](frontend/AGENTS.md) |
+| **Backend** (`backend/`) | Clean Architecture, FastAPI, `uv`, pytest | [backend/AGENTS.md](backend/AGENTS.md) |
+| **Frontend** (`frontend/`) | Feature-Sliced Design (FSD), React, TypeScript, `npm` | [frontend/AGENTS.md](frontend/AGENTS.md) |
 
 ---
 
