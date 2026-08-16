@@ -7,7 +7,7 @@ from app.domain.repositories import IChatRepository, IMessageRepository
 class InMemoryChatRepository(IChatRepository):
     def __init__(self, initial_chats: Optional[List[Chat]] = None):
         self._chats: Dict[str, Chat] = {}
-        if initial_chats:
+        if initial_chats is not None:
             for chat in initial_chats:
                 self._chats[chat.id] = chat
         else:
@@ -56,7 +56,7 @@ class InMemoryChatRepository(IChatRepository):
 class InMemoryMessageRepository(IMessageRepository):
     def __init__(self, initial_messages: Optional[List[Message]] = None):
         self._messages: List[Message] = []
-        if initial_messages:
+        if initial_messages is not None:
             self._messages = list(initial_messages)
         else:
             # Seed default demo messages

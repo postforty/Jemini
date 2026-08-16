@@ -12,21 +12,29 @@ from app.usecases.generate_usecase import GenerateResponseUseCase
 
 load_dotenv()
 
-SUPABASE_URL = os.getenv("SUPABASE_URL", "")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")
+SUPABASE_URL = os.getenv("SUPABASE_URL", "").strip()
+SUPABASE_KEY = os.getenv("SUPABASE_KEY", "").strip()
 
 # Global instances for In-Memory Fallback
 _in_memory_chat_repo: Optional[InMemoryChatRepository] = None
 _in_memory_message_repo: Optional[InMemoryMessageRepository] = None
 _supabase_client = None
 
-if SUPABASE_URL and SUPABASE_KEY:
+is_valid_supabase = (
+    SUPABASE_URL 
+    and SUPABASE_KEY 
+    and "your-supabase-project" not in SUPABASE_URL 
+    and "your-supabase-anon-key" not in SUPABASE_KEY
+)
+
+if is_valid_supabase:
     try:
         from supabase import create_client
         _supabase_client = create_client(SUPABASE_URL, SUPABASE_KEY)
         print("Connected to Supabase successfully in Clean Architecture.")
     except Exception as e:
         print(f"Failed to initialize Supabase client: {e}")
+
 
 def get_chat_repository() -> IChatRepository:
     global _in_memory_chat_repo

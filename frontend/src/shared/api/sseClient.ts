@@ -1,22 +1,50 @@
 export interface SSEChunk {
-  type: 'chunk';
-  text: string;
+  type: 'chat_id' | 'chunk' | 'done';
+  text?: string;
+  chat_id?: string;
+  full_text?: string;
 }
 
 export async function* readSSEStream(response: Response): AsyncGenerator<SSEChunk> {
   const reader = response.body!.getReader();
   const decoder = new TextDecoder('utf-8');
+  let buffer = '';
+
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
-    const lines = decoder.decode(value).split('\n\n');
-    for (const line of lines) {
-      if (line.startsWith('data: ')) {
+
+    buffer += decoder.decode(value, { stream: true });
+    const parts = buffer.split('\n\n');
+    buffer = parts.pop() || '';
+
+    for (const part of parts) {
+      for (const line of part.split('\n')) {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('data: ')) {
+          try {
+            const data = JSON.parse(trimmed.slice(6)) as SSEChunk;
+            yield data;
+          } catch {
+            /* ignore */
+          }
+        }
+      }
+    }
+  }
+
+  if (buffer.trim()) {
+    for (const line of buffer.split('\n')) {
+      const trimmed = line.trim();
+      if (trimmed.startsWith('data: ')) {
         try {
-          const data = JSON.parse(line.replace('data: ', '')) as SSEChunk;
+          const data = JSON.parse(trimmed.slice(6)) as SSEChunk;
           yield data;
-        } catch { /* ignore */ }
+        } catch {
+          /* ignore */
+        }
       }
     }
   }
 }
+
