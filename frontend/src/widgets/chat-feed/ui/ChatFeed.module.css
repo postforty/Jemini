@@ -1,0 +1,39 @@
+.chatViewport {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 0 120px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.chatViewport::-webkit-scrollbar {
+  width: 6px;
+}
+.chatViewport::-webkit-scrollbar-thumb {
+  background-color: #cbd0d4;
+  border-radius: 4px;
+}
+
+.heroGreeting {
+  margin: auto;
+  text-align: center;
+  max-width: 600px;
+  padding: 0 24px;
+}
+
+.heroTitle {
+  font-size: 2.2rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1.4;
+}
+
+.messageList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
