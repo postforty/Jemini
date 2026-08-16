@@ -64,6 +64,10 @@ export function useChatPage() {
           }));
         }
       });
+
+      if (!accumulatedText) {
+        throw new Error('Empty response received from server stream');
+      }
     } catch (error) {
       console.warn('API error, using client streaming fallback:', error);
       let replyText = `안녕하세요! **${selectedModel}** 모델이 입력해주신 "${prompt}" 내용을 받아 분석했습니다.\n\n### 주요 요약\n- **입력 내용**: ${prompt}\n- **선택된 모델**: \`${selectedModel}\`\n\n\`\`\`json\n{\n  "status": "success",\n  "model": "${selectedModel}",\n  "processed": true\n}\n\`\`\``;

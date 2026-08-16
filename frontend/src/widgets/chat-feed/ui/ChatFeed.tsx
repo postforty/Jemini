@@ -70,6 +70,10 @@ export function ChatFeed() {
           }));
         }
       });
+
+      if (!accumulatedText) {
+        throw new Error('Empty response received from server stream');
+      }
     } catch (error) {
       console.warn('API error, using client streaming fallback:', error);
       let replyText = `재생성 실패: 서버에 연결할 수 없습니다.`;

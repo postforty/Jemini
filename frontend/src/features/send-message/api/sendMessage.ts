@@ -18,6 +18,6 @@ export async function sendMessageStream(params: SendMessageParams): Promise<void
   });
   if (!response.ok || !response.body) throw new Error('API request failed');
   for await (const data of readSSEStream(response)) {
-    if (data.type === 'chunk') params.onChunk(data.text);
+    if (data.type === 'chunk' && data.text) params.onChunk(data.text);
   }
 }
