@@ -2,7 +2,7 @@
 
 이 문서는 **AI 코딩 에이전트(LLM Coding Agent)**를 위한 프로젝트 전반의 작업 표준 및 서브 프로젝트별 에이전트 가이드 허브입니다.
 
-> 💡 **사람(사용자/개발자)을 위한 프로젝트 안내서**는 [README.md](file:///d:/wsh/vibe-workspace/ch10/jemini/README.md)를 참조하십시오.
+> 💡 **사람(사용자/개발자)을 위한 프로젝트 안내서**는 [README.md](README.md)를 참조하십시오.
 
 ---
 
@@ -21,8 +21,8 @@
 
 | 서브 프로젝트 | 아키텍처 / 기술 스택 | 에이전트 가이드라인 |
 |---|---|---|
-| **Backend** (`backend/`) | Clean Architecture, FastAPI, `uv`, pytest | [Backend AGENTS.md](file:///d:/wsh/vibe-workspace/ch10/jemini/backend/AGENTS.md) |
-| **Frontend** (`frontend/`) | Feature-Sliced Design (FSD), React, TypeScript, `npm` | [Frontend AGENTS.md](file:///d:/wsh/vibe-workspace/ch10/jemini/frontend/AGENTS.md) |
+| **Backend** (`backend/`) | Clean Architecture, FastAPI, `uv`, pytest | [backend/AGENTS.md](backend/AGENTS.md) |
+| **Frontend** (`frontend/`) | Feature-Sliced Design (FSD), React, TypeScript, `npm` | [frontend/AGENTS.md](frontend/AGENTS.md) |
 
 ---
 

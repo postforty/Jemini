@@ -2,7 +2,7 @@
 
 이 문서는 **AI 코딩 에이전트(LLM Coding Agent)**가 백엔드 코드를 작성, 리팩토링, 디버깅할 때 준수해야 하는 엄격한 개발 규칙과 아키텍처 제약 사항을 정의합니다.
 
-> 💡 **사용자/개발자를 위한 백엔드 실행 가이드 및 설명서**는 [README.md](file:///d:/wsh/vibe-workspace/ch10/jemini/backend/README.md)를 참조하십시오.
+> 💡 **사용자/개발자를 위한 백엔드 실행 가이드 및 설명서**는 [backend/README.md](README.md)를 참조하십시오.
 
 ---
 

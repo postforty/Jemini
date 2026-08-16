@@ -2,7 +2,7 @@
 
 이 프로젝트는 **Vite**와 **React 18**을 기반으로 구축된 **Jemini** AI 챗봇 웹 애플리케이션 프론트엔드입니다.
 
-> 🤖 **AI 에이전트 개발 지침 및 FSD 아키텍처 제약사항**은 [AGENTS.md](file:///d:/wsh/vibe-workspace/ch10/jemini/frontend/AGENTS.md)를 참조하십시오.
+> 🤖 **AI 에이전트 개발 지침 및 FSD 아키텍처 제약사항**은 [frontend/AGENTS.md](AGENTS.md)를 참조하십시오.
 
 ---
 
