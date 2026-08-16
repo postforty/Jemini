@@ -1,0 +1,150 @@
+.messageBubble {
+  display: flex;
+  gap: 16px;
+  padding: 16px 24px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.messageBubble.user {
+  background-color: transparent;
+}
+
+.messageBubble.assistant {
+  background-color: transparent;
+}
+
+.avatarIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.userAvatar {
+  background-color: #f1f3f4;
+  color: var(--text-secondary);
+}
+
+.aiAvatar {
+  background-color: #fff;
+  border: 1px solid var(--border-light);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.sparkIcon {
+  width: 22px;
+  height: 22px;
+  fill: url(#jemini-grad);
+}
+
+.messageContent {
+  flex: 1;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-primary);
+  min-width: 0;
+}
+
+.messageText {
+  white-space: pre-wrap;
+}
+
+.attachedImg {
+  max-width: 300px;
+  max-height: 300px;
+  border-radius: 12px;
+  margin-top: 12px;
+  border: 1px solid var(--border-light);
+  object-fit: cover;
+}
+
+.messageActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.messageBubble:hover .messageActions {
+  opacity: 1;
+}
+
+.actionBtn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.actionBtn:hover {
+  background-color: #f1f3f4;
+  color: var(--text-secondary);
+}
+
+/* Markdown Styles */
+.markdown h1, .markdown h2, .markdown h3 {
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  font-weight: 600;
+}
+
+.markdown p {
+  margin-bottom: 1em;
+}
+
+.markdown p:last-child {
+  margin-bottom: 0;
+}
+
+.markdown ul, .markdown ol {
+  margin-bottom: 1em;
+  padding-left: 24px;
+}
+
+.markdown li {
+  margin-bottom: 0.5em;
+}
+
+.markdown code {
+  background-color: #f1f3f4;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9em;
+}
+
+.markdown pre {
+  background-color: #f8f9fa;
+  padding: 16px;
+  border-radius: 8px;
+  overflow-x: auto;
+  border: 1px solid var(--border-light);
+  margin: 1em 0;
+}
+
+.markdown pre code {
+  background-color: transparent;
+  padding: 0;
+  border-radius: 0;
+  font-size: 14px;
+}
+
+.markdown blockquote {
+  border-left: 4px solid var(--border-light);
+  padding-left: 16px;
+  color: var(--text-secondary);
+  margin: 1em 0;
+}

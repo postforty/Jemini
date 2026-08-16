@@ -1,0 +1,70 @@
+.modelDropdownContainer {
+  position: relative;
+}
+
+.modelSelectBtn {
+  background: transparent;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.modelSelectBtn:hover {
+  background-color: #f1f3f4;
+  color: var(--text-primary);
+}
+
+.modelMenu {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+  border: 1px solid var(--border-light);
+  width: 280px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+  padding: 8px 0;
+}
+
+.modelOption {
+  background: transparent;
+  border: none;
+  text-align: left;
+  padding: 10px 16px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.modelOption:hover {
+  background-color: #f8faff;
+}
+
+.modelOption.selected {
+  background-color: #e8f0fe;
+}
+
+.modelName {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.modelDesc {
+  font-size: 12px;
+  color: var(--text-muted);
+}
