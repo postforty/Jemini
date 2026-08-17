@@ -1,7 +1,7 @@
 # Jemini Chatbot Backend
 
 FastAPI 기반의 Jemini Chatbot 백엔드로, **Clean Architecture** 계층형 패턴과 **TDD (pytest)** 기반 테스트 슈트가 적용된 프로젝트입니다.
-패키지 및 가상환경 관리자로 **[uv](https://github.com/astral-sh/uv)**를 사용합니다.
+패키지 및 가상환경 관리자로 [uv](https://github.com/astral-sh/uv)를 사용합니다.
 
 > 🤖 **AI 에이전트 개발 지침 및 아키텍처 제약사항**은 [backend/AGENTS.md](AGENTS.md)를 참조하십시오.
 
