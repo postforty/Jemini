@@ -18,9 +18,9 @@
 
 ## 🚀 주요 기능 (Key Features)
 
-1. **Gemini 스타일 대화형 UI**
+1. **Gemini 스타일 대화형 UI & 멀티 벤더 지원**
    - 접기/펼치기가 가능한 반응형 사이드바 (대화 목록 관리 및 새 대화 생성)
-   - 중앙 상단 모델 선택 드롭다운 팝오버
+   - 중앙 상단 **다중 벤더 모델 선택 드롭다운** (Google Gemini, OpenAI GPT-4o, Anthropic Claude 3.5, Ollama)
    - 플로팅 스타일의 메시지 입력창 및 파일/이미지 첨부 UI
 2. **실시간 SSE 응답 스트리밍**
    - FastAPI 백엔드와의 Server-Sent Events (SSE) 연동을 통한 실시간 타이핑 스트리밍

@@ -18,8 +18,9 @@
   - 비즈니스 유스케이스 흐름 제어 및 오케스트레이션을 담당합니다.
   - 오직 추상 인터페이스(`IChatRepository`, `IMessageRepository`, `ILLMService`)에만 의존하며, 구체적인 DB나 외부 API 클래스를 직접 임포트/참조하지 않습니다.
 - **Infrastructure 계층 (`app/infrastructure/`)**:
-  - DB(Supabase, InMemory) 및 외부 API(Gemini)의 구체적인 구현체를 작성합니다.
-  - Domain 계층의 인터페이스를 상속받아 구현합니다.
+  - DB(Supabase, InMemory) 및 외부 API/LLM 연동(LangChain Multi-Vendor 어댑터, Gemini SDK)의 구체적인 구현체를 작성합니다.
+  - Domain 계층의 인터페이스(`ILLMService`, `IChatRepository` 등)를 상속받아 구현합니다.
+  - **LangChain 의존성 격리**: `langchain`, `langchain-core`, 벤더별 패키지(`langchain-openai`, `langchain-anthropic` 등) 및 관련 메시지 객체(`HumanMessage`, `AIMessage` 등)는 반드시 Infrastructure 계층 내부에만 캡슐화되어야 하며 Domain이나 UseCase 계층으로 직접 유출되어서는 안 됩니다.
 - **Presentation 계층 (`app/presentation/`)**:
   - FastAPI 라우터(`api/v1/`), 요청/응답 Pydantic DTO(`schemas.py`), 의존성 주입 Container(`dependencies.py`)를 관리합니다.
 

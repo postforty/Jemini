@@ -14,7 +14,10 @@ load_dotenv()
 
 SUPABASE_URL = os.getenv("SUPABASE_URL", "").strip()
 SUPABASE_KEY = os.getenv("SUPABASE_KEY", "").strip()
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip() or os.getenv("GOOGLE_API_KEY", "").strip()
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip()
+ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "").strip()
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434").strip()
 
 # Global instances for In-Memory Fallback
 _in_memory_chat_repo: Optional[InMemoryChatRepository] = None
@@ -59,16 +62,24 @@ def get_llm_service() -> ILLMService:
     if _llm_service is not None:
         return _llm_service
 
-    is_valid_gemini = (
-        GEMINI_API_KEY 
-        and "your-gemini-api-key" not in GEMINI_API_KEY
+    has_any_key = (
+        (GEMINI_API_KEY and "your-gemini-api-key" not in GEMINI_API_KEY)
+        or (OPENAI_API_KEY and "your-openai-api-key" not in OPENAI_API_KEY)
+        or (ANTHROPIC_API_KEY and "your-anthropic-api-key" not in ANTHROPIC_API_KEY)
     )
-    if is_valid_gemini:
+
+    if has_any_key:
         try:
-            _llm_service = GeminiLLMService(api_key=GEMINI_API_KEY)
+            from app.infrastructure.external.langchain_service import LangChainMultiVendorService
+            _llm_service = LangChainMultiVendorService(
+                google_api_key=GEMINI_API_KEY,
+                openai_api_key=OPENAI_API_KEY,
+                anthropic_api_key=ANTHROPIC_API_KEY,
+                ollama_base_url=OLLAMA_BASE_URL,
+            )
             return _llm_service
         except Exception as e:
-            print(f"Failed to initialize GeminiLLMService: {e}")
+            print(f"Failed to initialize LangChainMultiVendorService: {e}")
 
     _llm_service = SimulatedGeminiService()
     return _llm_service
