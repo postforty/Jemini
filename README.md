@@ -10,7 +10,7 @@ Google Gemini 스타일의 UI와 Clean Architecture 기반의 FastAPI 백엔드�
 
 | 서브 프로젝트 | 기술 스택 | 설명서 |
 |---|---|---|
-| **Backend** (`backend/`) | Python, FastAPI, Clean Architecture, `uv`, pytest | [backend/README.md](backend/README.md) |
+| **Backend** (`backend/`) | Python, FastAPI, Clean Architecture, LangChain (Multi-Vendor), `uv`, pytest | [backend/README.md](backend/README.md) |
 | **Frontend** (`frontend/`) | React 18, Vite, TypeScript, FSD, Zustand | [frontend/README.md](frontend/README.md) |
 
 ---

@@ -23,7 +23,7 @@ backend/
 │   │
 │   ├── infrastructure/          # [Infrastructure 계층] DB 및 외부 서비스 구현체
 │   │   ├── persistence/         # InMemoryRepository, SupabaseRepository
-│   │   └── external/            # SimulatedGeminiService
+│   │   └── external/            # LangChainMultiVendorService, GeminiLLMService, SimulatedGeminiService
 │   │
 │   └── presentation/            # [Presentation 계층] FastAPI 라우터 및 DTO
 │       ├── api/v1/              # chats_router, generate_router
@@ -31,7 +31,7 @@ backend/
 │       └── schemas.py           # Request / Response Pydantic DTOs
 │
 ├── tests/                       # [TDD 테스트 슈트]
-│   ├── unit/                    # Domain 및 UseCase 단위 테스트
+│   ├── unit/                    # Domain, UseCase 및 LangChain Service 단위 테스트
 │   ├── integration/             # Repository CRUD 통합 테스트
 │   └── e2e/                     # FastAPI TestClient API 엔드포인트 테스트
 │
@@ -85,10 +85,17 @@ uv run pytest tests/e2e
 
 ## 🔑 환경 변수 설정 (`.env`)
 
-프로젝트 루트에 `.env` 파일을 생성하여 Supabase 연동 설정을 제어할 수 있습니다.
-`.env` 값이 비어있거나 파일이 없는 경우 자동으로 **In-Memory Fallback 저장소**로 동작하여 별도 데이터베이스 설정 없이 로컬 데모를 즉시 실행할 수 있습니다.
+프로젝트 루트에 `.env` 파일을 생성하여 Supabase 및 다양한 벤더사의 LLM API 키를 설정할 수 있습니다.
+API Key가 설정되지 않은 경우 자동으로 **In-Memory Fallback 저장소** 및 **Simulated LLM Service**로 안전하게 동작하여 별도 외부 설정 없이 즉시 로컬 실행이 가능합니다.
 
 ```env
+# Supabase 설정 (선택 사항: 미설정 시 In-Memory 저장소로 동작)
 SUPABASE_URL=https://your-supabase-project.supabase.co
 SUPABASE_KEY=your-supabase-anon-key
+
+# LLM 벤더사별 API Key (선택 사항: 필요한 모델의 키 설정)
+GEMINI_API_KEY=your-gemini-api-key       # Google Gemini 모델
+OPENAI_API_KEY=your-openai-api-key       # OpenAI (GPT-4o, GPT-4o-mini 등)
+ANTHROPIC_API_KEY=your-anthropic-api-key # Anthropic (Claude 3.5 Sonnet, Haiku 등)
+OLLAMA_BASE_URL=http://localhost:11434   # Ollama 로컬 모델 서버 주소
 ```
