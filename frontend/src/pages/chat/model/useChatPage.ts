@@ -72,6 +72,17 @@ export function useChatPage() {
             }
             return c;
           }));
+        },
+        onSuggestedQuestions: (questions) => {
+          setChats(prevChats => prevChats.map(c => {
+            if (c.id === targetChatId) {
+              const updatedMsgs = c.messages.map(m => 
+                m.id === assistantMessageId ? { ...m, suggestedQuestions: questions } : m
+              );
+              return { ...c, messages: updatedMsgs };
+            }
+            return c;
+          }));
         }
       });
 
@@ -81,6 +92,11 @@ export function useChatPage() {
     } catch (error) {
       console.warn('API error, using client streaming fallback:', error);
       let replyText = `안녕하세요! **${selectedModel}** 모델이 입력해주신 "${prompt}" 내용을 받아 분석했습니다.\n\n### 주요 요약\n- **입력 내용**: ${prompt}\n- **선택된 모델**: \`${selectedModel}\`\n\n\`\`\`json\n{\n  "status": "success",\n  "model": "${selectedModel}",\n  "processed": true\n}\n\`\`\``;
+      const fallbackQuestions = [
+        "어떤 작업을 도와줄 수 있나요?",
+        "Jemini의 주요 기능은 무엇인가요?",
+        "간단한 예제 코드를 보여줘"
+      ];
       
       let curr = '';
       for (let i = 0; i < replyText.length; i += 3) {
@@ -96,6 +112,16 @@ export function useChatPage() {
           return c;
         }));
       }
+
+      setChats(prevChats => prevChats.map(c => {
+        if (c.id === targetChatId) {
+          const updatedMsgs = c.messages.map(m => 
+            m.id === assistantMessageId ? { ...m, suggestedQuestions: fallbackQuestions } : m
+          );
+          return { ...c, messages: updatedMsgs };
+        }
+        return c;
+      }));
     } finally {
       setIsGenerating(false);
     }

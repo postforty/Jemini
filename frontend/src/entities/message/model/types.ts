@@ -3,4 +3,6 @@ export interface Message {
   sender: 'user' | 'assistant';
   content: string;
   image_url: string | null;
+  suggestedQuestions?: string[];
 }
+

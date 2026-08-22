@@ -5,11 +5,16 @@ import { sendMessageStream } from '@/features/send-message';
 import { CURRENT_USER } from '@/entities/user';
 import styles from './ChatFeed.module.css';
 
-export function ChatFeed() {
+interface ChatFeedProps {
+  onSelectQuestion?: (question: string) => void;
+}
+
+export function ChatFeed({ onSelectQuestion }: ChatFeedProps) {
   const chats = useChatStore((s) => s.chats);
   const currentChatId = useChatStore((s) => s.currentChatId);
   const selectedModel = useChatStore((s) => s.selectedModel);
   const setChats = useChatStore((s) => s.setChats);
+  const isGenerating = useChatStore((s) => s.isGenerating);
   const setIsGenerating = useChatStore((s) => s.setIsGenerating);
   
   const activeChat = chats.find(c => c.id === currentChatId);
@@ -68,6 +73,17 @@ export function ChatFeed() {
             }
             return c;
           }));
+        },
+        onSuggestedQuestions: (questions) => {
+          setChats(prevChats => prevChats.map(c => {
+            if (c.id === currentChatId) {
+              const updatedMsgs = c.messages.map(m => 
+                m.id === assistantMessageId ? { ...m, suggestedQuestions: questions } : m
+              );
+              return { ...c, messages: updatedMsgs };
+            }
+            return c;
+          }));
         }
       });
 
@@ -108,6 +124,8 @@ export function ChatFeed() {
                 key={msg.id} 
                 message={msg} 
                 onRegenerate={isLastAssistant ? () => handleRegenerate(previousUserMessage || '') : null}
+                onSelectQuestion={isLastAssistant ? onSelectQuestion : undefined}
+                isGenerating={isGenerating}
               />
             );
           })}

@@ -1,0 +1,71 @@
+.container {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-secondary, #9aa0a6);
+}
+
+.sparkleIcon {
+  color: #8ab4f8;
+}
+
+.chipsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.questionChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background-color: var(--surface-secondary, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.12));
+  border-radius: 20px;
+  color: var(--text-primary, #e8eaed);
+  font-size: 0.85rem;
+  font-weight: 400;
+  line-height: 1.3;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+}
+
+.questionChip:hover:not(:disabled) {
+  background-color: var(--chip-hover, rgba(138, 180, 248, 0.15));
+  border-color: var(--primary-color, #8ab4f8);
+  color: #8ab4f8;
+  transform: translateY(-1px);
+}
+
+.questionChip:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.questionChip:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
