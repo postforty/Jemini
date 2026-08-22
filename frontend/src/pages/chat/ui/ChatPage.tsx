@@ -14,7 +14,7 @@ export function ChatPage() {
       <Sidebar />
       <main className={styles.mainContent}>
         <Header />
-        <ChatFeed />
+        <ChatFeed onSelectQuestion={(question) => handleSendMessage(question, null)} />
         <FloatingInput onSend={handleSendMessage} />
       </main>
     </div>

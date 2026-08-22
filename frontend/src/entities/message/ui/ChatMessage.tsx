@@ -2,14 +2,17 @@ import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Copy, RefreshCw, Check, ThumbsUp, ThumbsDown, MoreHorizontal } from 'lucide-react';
 import type { Message } from '../model/types';
+import { SuggestedQuestions } from './SuggestedQuestions';
 import styles from './ChatMessage.module.css';
 
 interface ChatMessageProps {
   message: Message;
   onRegenerate?: (() => void) | null;
+  onSelectQuestion?: (question: string) => void;
+  isGenerating?: boolean;
 }
 
-export function ChatMessage({ message, onRegenerate }: ChatMessageProps) {
+export function ChatMessage({ message, onRegenerate, onSelectQuestion, isGenerating }: ChatMessageProps) {
   const [copied, setCopied] = useState(false);
   const isUser = message.sender === 'user';
 
@@ -59,6 +62,13 @@ export function ChatMessage({ message, onRegenerate }: ChatMessageProps) {
             </button>
           )}
         </div>
+        {message.suggestedQuestions && message.suggestedQuestions.length > 0 && (
+          <SuggestedQuestions
+            questions={message.suggestedQuestions}
+            onSelectQuestion={onSelectQuestion}
+            disabled={isGenerating}
+          />
+        )}
       </div>
     </div>
   );

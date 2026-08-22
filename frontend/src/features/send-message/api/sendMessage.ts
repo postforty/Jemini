@@ -8,6 +8,7 @@ interface SendMessageParams {
   imageUrl: string | null;
   onChunk: (text: string) => void;
   onChatId?: (chatId: string) => void;
+  onSuggestedQuestions?: (questions: string[]) => void;
 }
 
 export async function sendMessageStream(params: SendMessageParams): Promise<void> {
@@ -23,6 +24,9 @@ export async function sendMessageStream(params: SendMessageParams): Promise<void
       params.onChatId(data.chat_id);
     }
     if (data.type === 'chunk' && data.text) params.onChunk(data.text);
+    if (data.type === 'suggested_questions' && Array.isArray(data.questions) && params.onSuggestedQuestions) {
+      params.onSuggestedQuestions(data.questions);
+    }
   }
 }
 

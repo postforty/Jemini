@@ -1,4 +1,5 @@
 import pytest
+import json
 from typing import AsyncGenerator
 from app.domain.entities import Chat, Message
 from app.domain.repositories import IChatRepository, IMessageRepository
@@ -132,4 +133,68 @@ async def test_generate_response_usecase_multiturn():
     assert len(llm_service.last_history) == 2  # first turn user & assistant
     assert llm_service.last_history[0].content == "First message"
     assert llm_service.last_image_url == "data:image/png;base64,abc"
+
+
+class MockLLMServiceWithSuggestions(ILLMService):
+    async def generate_stream(
+        self,
+        prompt: str,
+        model: str,
+        history=None,
+        image_url=None
+    ) -> AsyncGenerator[str, None]:
+        chunks = [
+            "안녕하세요! ",
+            "오늘의 커피를 ",
+            "추천해 드릴게요.\n\n<sugg",
+            "estions>\n[\n",
+            '  "원두 보관법은?",\n',
+            '  "드립 커피 추출 팁은?",\n',
+            '  "에스프레소 머신 추천해줘"\n',
+            "]\n</suggestions>"
+        ]
+        for c in chunks:
+            yield c
+
+@pytest.mark.asyncio
+async def test_generate_response_usecase_with_suggestions():
+    chat_repo = MockChatRepository()
+    msg_repo = MockMessageRepository()
+    llm_service = MockLLMServiceWithSuggestions()
+
+    gen_uc = GenerateResponseUseCase(chat_repo, msg_repo, llm_service)
+
+    events = []
+    async for event in gen_uc.execute(prompt="커피 추천해줘"):
+        events.append(event)
+
+    # Check SSE events
+    event_data = [json.loads(e.replace("data: ", "").strip()) for e in events if e.strip()]
+    event_types = [d["type"] for d in event_data]
+
+    assert "chat_id" in event_types
+    assert "chunk" in event_types
+    assert "suggested_questions" in event_types
+    assert "done" in event_types
+
+    # Verify that raw suggestions tag was NOT leaked into chunk stream
+    chunk_texts = [d["text"] for d in event_data if d["type"] == "chunk"]
+    accumulated_chunk = "".join(chunk_texts)
+    assert "<suggestions>" not in accumulated_chunk
+    assert "원두 보관법은?" not in accumulated_chunk
+    assert accumulated_chunk == "안녕하세요! 오늘의 커피를 추천해 드릴게요.\n\n"
+
+    # Verify suggested questions
+    sugg_event = next(d for d in event_data if d["type"] == "suggested_questions")
+    assert len(sugg_event["questions"]) == 3
+    assert sugg_event["questions"][0] == "원두 보관법은?"
+    assert sugg_event["questions"][1] == "드립 커피 추출 팁은?"
+    assert sugg_event["questions"][2] == "에스프레소 머신 추천해줘"
+
+    # Verify message in DB does not contain the suggestions tag
+    chats = await chat_repo.get_all()
+    messages = await msg_repo.get_by_chat_id(chats[0].id)
+    assistant_msg = next(m for m in messages if m.sender == "assistant")
+    assert assistant_msg.content == "안녕하세요! 오늘의 커피를 추천해 드릴게요."
+
 
