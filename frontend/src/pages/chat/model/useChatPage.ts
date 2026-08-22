@@ -51,6 +51,16 @@ export function useChatPage() {
         chatId: targetChatId,
         model: selectedModel,
         imageUrl: image,
+        onChatId: (serverChatId) => {
+          if (serverChatId && serverChatId !== targetChatId) {
+            const oldId = targetChatId;
+            targetChatId = serverChatId;
+            setCurrentChatId(serverChatId);
+            setChats(prevChats => prevChats.map(c => 
+              c.id === oldId ? { ...c, id: serverChatId } : c
+            ));
+          }
+        },
         onChunk: (text) => {
           accumulatedText += text;
           setChats(prevChats => prevChats.map(c => {

@@ -1,46 +1,32 @@
-.messageBubble {
+/* ─── 사용자 메시지: 오른쪽 정렬 말풍선 ─── */
+.userMessageRow {
   display: flex;
-  gap: 16px;
-  padding: 16px 24px;
+  justify-content: flex-end;
+  padding: 4px 24px;
   max-width: 1000px;
   margin: 0 auto;
+  width: 100%;
 }
 
-.messageBubble.user {
-  background-color: transparent;
+.userBubble {
+  background-color: #f0f4f9;
+  border-radius: 24px;
+  padding: 12px 20px;
+  max-width: 65%;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-primary);
+  word-break: break-word;
 }
 
-.messageBubble.assistant {
-  background-color: transparent;
-}
-
-.avatarIcon {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+/* ─── AI 응답: 왼쪽 정렬, 배경 없음 ─── */
+.assistantMessageRow {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  font-weight: 600;
-  flex-shrink: 0;
-}
-
-.userAvatar {
-  background-color: #f1f3f4;
-  color: var(--text-secondary);
-}
-
-.aiAvatar {
-  background-color: #fff;
-  border: 1px solid var(--border-light);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
-
-.sparkIcon {
-  width: 22px;
-  height: 22px;
-  fill: url(#jemini-grad);
+  justify-content: flex-start;
+  padding: 4px 24px;
+  max-width: 1000px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .messageContent {
@@ -49,6 +35,7 @@
   line-height: 1.6;
   color: var(--text-primary);
   min-width: 0;
+  max-width: 780px;
 }
 
 .messageText {
@@ -62,17 +49,19 @@
   margin-top: 12px;
   border: 1px solid var(--border-light);
   object-fit: cover;
+  display: block;
 }
 
+/* ─── 액션 버튼 ─── */
 .messageActions {
   display: flex;
-  gap: 8px;
-  margin-top: 12px;
+  gap: 2px;
+  margin-top: 10px;
   opacity: 0;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.15s ease;
 }
 
-.messageBubble:hover .messageActions {
+.assistantMessageRow:hover .messageActions {
   opacity: 1;
 }
 
@@ -80,13 +69,13 @@
   background: transparent;
   border: none;
   cursor: pointer;
-  padding: 6px;
+  padding: 6px 8px;
   border-radius: 50%;
-  color: var(--text-muted);
+  color: #9aa0a6;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .actionBtn:hover {
@@ -94,8 +83,10 @@
   color: var(--text-secondary);
 }
 
-/* Markdown Styles */
-.markdown h1, .markdown h2, .markdown h3 {
+/* ─── Markdown 스타일 ─── */
+.markdown h1,
+.markdown h2,
+.markdown h3 {
   margin-top: 1.5em;
   margin-bottom: 0.5em;
   font-weight: 600;
@@ -109,13 +100,18 @@
   margin-bottom: 0;
 }
 
-.markdown ul, .markdown ol {
+.markdown ul,
+.markdown ol {
   margin-bottom: 1em;
   padding-left: 24px;
 }
 
 .markdown li {
   margin-bottom: 0.5em;
+}
+
+.markdown strong {
+  font-weight: 700;
 }
 
 .markdown code {

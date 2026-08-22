@@ -49,10 +49,23 @@ class MockMessageRepository(IMessageRepository):
         return True
 
 class MockLLMService(ILLMService):
-    async def generate_stream(self, prompt: str, model: str) -> AsyncGenerator[str, None]:
+    def __init__(self):
+        self.last_history = None
+        self.last_image_url = None
+
+    async def generate_stream(
+        self,
+        prompt: str,
+        model: str,
+        history=None,
+        image_url=None
+    ) -> AsyncGenerator[str, None]:
+        self.last_history = history
+        self.last_image_url = image_url
         chunks = ["Hello ", "world!"]
         for c in chunks:
             yield c
+
 
 @pytest.mark.asyncio
 async def test_create_and_list_chat_usecases():
@@ -92,3 +105,31 @@ async def test_generate_response_usecase():
     assert messages[0].content == "Greeting message"
     assert messages[1].sender == "assistant"
     assert messages[1].content == "Hello world!"
+
+@pytest.mark.asyncio
+async def test_generate_response_usecase_multiturn():
+    chat_repo = MockChatRepository()
+    msg_repo = MockMessageRepository()
+    llm_service = MockLLMService()
+
+    gen_uc = GenerateResponseUseCase(chat_repo, msg_repo, llm_service)
+
+    # 1. First turn
+    events1 = []
+    async for event in gen_uc.execute(prompt="First message"):
+        events1.append(event)
+    
+    chats = await chat_repo.get_all()
+    chat_id = chats[0].id
+
+    # 2. Second turn with chat_id
+    events2 = []
+    async for event in gen_uc.execute(prompt="Second message", chat_id=chat_id, image_url="data:image/png;base64,abc"):
+        events2.append(event)
+
+    # Verify that history was passed to llm_service in second turn
+    assert llm_service.last_history is not None
+    assert len(llm_service.last_history) == 2  # first turn user & assistant
+    assert llm_service.last_history[0].content == "First message"
+    assert llm_service.last_image_url == "data:image/png;base64,abc"
+
