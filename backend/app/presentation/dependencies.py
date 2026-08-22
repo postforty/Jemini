@@ -62,24 +62,17 @@ def get_llm_service() -> ILLMService:
     if _llm_service is not None:
         return _llm_service
 
-    has_any_key = (
-        (GEMINI_API_KEY and "your-gemini-api-key" not in GEMINI_API_KEY)
-        or (OPENAI_API_KEY and "your-openai-api-key" not in OPENAI_API_KEY)
-        or (ANTHROPIC_API_KEY and "your-anthropic-api-key" not in ANTHROPIC_API_KEY)
-    )
-
-    if has_any_key:
-        try:
-            from app.infrastructure.external.langchain_service import LangChainMultiVendorService
-            _llm_service = LangChainMultiVendorService(
-                google_api_key=GEMINI_API_KEY,
-                openai_api_key=OPENAI_API_KEY,
-                anthropic_api_key=ANTHROPIC_API_KEY,
-                ollama_base_url=OLLAMA_BASE_URL,
-            )
-            return _llm_service
-        except Exception as e:
-            print(f"Failed to initialize LangChainMultiVendorService: {e}")
+    try:
+        from app.infrastructure.external.langchain_service import LangChainMultiVendorService
+        _llm_service = LangChainMultiVendorService(
+            google_api_key=GEMINI_API_KEY,
+            openai_api_key=OPENAI_API_KEY,
+            anthropic_api_key=ANTHROPIC_API_KEY,
+            ollama_base_url=OLLAMA_BASE_URL,
+        )
+        return _llm_service
+    except Exception as e:
+        print(f"Failed to initialize LangChainMultiVendorService: {e}")
 
     _llm_service = SimulatedGeminiService()
     return _llm_service

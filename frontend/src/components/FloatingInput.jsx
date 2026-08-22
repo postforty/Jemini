@@ -9,7 +9,7 @@ const MODELS = [
   { id: 'gpt-4o', name: 'gpt-4o', desc: '최상위 플래그십 AI 모델 (OpenAI)' },
   { id: 'claude-3-5-haiku-latest', name: 'claude-3-5-haiku', desc: '초고속 고지능 모델 (Anthropic)' },
   { id: 'claude-3-5-sonnet-latest', name: 'claude-3-5-sonnet', desc: '정밀 코딩 및 분석 특화 (Anthropic)' },
-  { id: 'ollama:llama3.2', name: 'ollama:llama3.2', desc: '로컬 경량 오픈소스 모델 (Ollama)' }
+  { id: 'ollama:gemma3:270m', name: 'ollama:gemma3:270m', desc: '로컬 경량 오픈소스 모델 (Ollama)' }
 ];
 
 export default function FloatingInput({ onSend, selectedModel, setSelectedModel, disabled }) {

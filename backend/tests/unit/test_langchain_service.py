@@ -29,9 +29,14 @@ def test_model_resolution_anthropic(service):
     assert model.model == "claude-3-5-haiku-latest"
 
 def test_model_resolution_ollama(service):
-    model = service._get_model("ollama:llama3.2")
+    model = service._get_model("ollama:gemma3:270m")
     assert model.__class__.__name__ == "ChatOllama"
-    assert model.model == "llama3.2"
+    assert model.model == "gemma3:270m"
+
+    # Direct gemma prefix without ollama:
+    direct_model = service._get_model("gemma3:270m")
+    assert direct_model.__class__.__name__ == "ChatOllama"
+    assert direct_model.model == "gemma3:270m"
 
 def test_build_messages_with_history_and_image(service):
     history = [
