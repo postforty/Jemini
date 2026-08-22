@@ -7,6 +7,7 @@ interface SendMessageParams {
   model: string;
   imageUrl: string | null;
   onChunk: (text: string) => void;
+  onChatId?: (chatId: string) => void;
 }
 
 export async function sendMessageStream(params: SendMessageParams): Promise<void> {
@@ -18,6 +19,10 @@ export async function sendMessageStream(params: SendMessageParams): Promise<void
   });
   if (!response.ok || !response.body) throw new Error('API request failed');
   for await (const data of readSSEStream(response)) {
+    if (data.type === 'chat_id' && data.chat_id && params.onChatId) {
+      params.onChatId(data.chat_id);
+    }
     if (data.type === 'chunk' && data.text) params.onChunk(data.text);
   }
 }
+

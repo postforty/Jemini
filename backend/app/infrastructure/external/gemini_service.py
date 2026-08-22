@@ -1,13 +1,81 @@
 import asyncio
-from typing import AsyncGenerator
+import base64
+from typing import AsyncGenerator, Optional, List
+from app.domain.entities import Message
 from app.domain.services import ILLMService
+
+class GeminiLLMService(ILLMService):
+    def __init__(self, api_key: str):
+        self.api_key = api_key
+        from google import genai
+        self.client = genai.Client(api_key=api_key)
+
+    async def generate_stream(
+        self,
+        prompt: str,
+        model: str,
+        history: Optional[List[Message]] = None,
+        image_url: Optional[str] = None
+    ) -> AsyncGenerator[str, None]:
+        from google.genai import types
+
+        model_name = model or "gemini-3.1-flash-lite"
+        contents: List[types.Content] = []
+
+        # 1. Build conversation history
+        if history:
+            for msg in history:
+                role = "user" if msg.sender == "user" else "model"
+                parts = []
+                if msg.content:
+                    parts.append(types.Part.from_text(text=msg.content))
+                if parts:
+                    contents.append(types.Content(role=role, parts=parts))
+
+        # 2. Build current turn user content (with optional image)
+        current_parts = []
+        if image_url:
+            try:
+                if "," in image_url:
+                    header, base64_data = image_url.split(",", 1)
+                    mime_type = "image/png"
+                    if "data:" in header and ";base64" in header:
+                        mime_type = header.split("data:")[1].split(";base64")[0]
+                    image_bytes = base64.b64decode(base64_data)
+                    current_parts.append(types.Part.from_bytes(data=image_bytes, mime_type=mime_type))
+            except Exception as img_err:
+                print(f"Failed to parse image attachment: {img_err}")
+
+        if prompt:
+            current_parts.append(types.Part.from_text(text=prompt))
+        elif not current_parts:
+            current_parts.append(types.Part.from_text(text=""))
+
+        contents.append(types.Content(role="user", parts=current_parts))
+
+        # 3. Call client.aio.models.generate_content_stream
+        response = await self.client.aio.models.generate_content_stream(
+            model=model_name,
+            contents=contents
+        )
+
+        async for chunk in response:
+            if chunk.text:
+                yield chunk.text
+
 
 class SimulatedGeminiService(ILLMService):
     def __init__(self, chunk_size: int = 3, delay: float = 0.02):
         self.chunk_size = chunk_size
         self.delay = delay
 
-    async def generate_stream(self, prompt: str, model: str) -> AsyncGenerator[str, None]:
+    async def generate_stream(
+        self,
+        prompt: str,
+        model: str,
+        history: Optional[List[Message]] = None,
+        image_url: Optional[str] = None
+    ) -> AsyncGenerator[str, None]:
         model_name = model or "gemini-3.1-flash-lite"
         prompt_lower = prompt.lower()
 

@@ -6,7 +6,7 @@ from app.domain.repositories import IChatRepository, IMessageRepository
 from app.domain.services import ILLMService
 from app.infrastructure.persistence.in_memory_repo import InMemoryChatRepository, InMemoryMessageRepository
 from app.infrastructure.persistence.supabase_repo import SupabaseChatRepository, SupabaseMessageRepository
-from app.infrastructure.external.gemini_service import SimulatedGeminiService
+from app.infrastructure.external.gemini_service import GeminiLLMService, SimulatedGeminiService
 from app.usecases.chat_usecases import ListChatsUseCase, CreateChatUseCase, DeleteChatUseCase, GetMessagesUseCase
 from app.usecases.generate_usecase import GenerateResponseUseCase
 
@@ -14,11 +14,13 @@ load_dotenv()
 
 SUPABASE_URL = os.getenv("SUPABASE_URL", "").strip()
 SUPABASE_KEY = os.getenv("SUPABASE_KEY", "").strip()
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
 
 # Global instances for In-Memory Fallback
 _in_memory_chat_repo: Optional[InMemoryChatRepository] = None
 _in_memory_message_repo: Optional[InMemoryMessageRepository] = None
 _supabase_client = None
+_llm_service: Optional[ILLMService] = None
 
 is_valid_supabase = (
     SUPABASE_URL 
@@ -53,7 +55,23 @@ def get_message_repository() -> IMessageRepository:
     return _in_memory_message_repo
 
 def get_llm_service() -> ILLMService:
-    return SimulatedGeminiService()
+    global _llm_service
+    if _llm_service is not None:
+        return _llm_service
+
+    is_valid_gemini = (
+        GEMINI_API_KEY 
+        and "your-gemini-api-key" not in GEMINI_API_KEY
+    )
+    if is_valid_gemini:
+        try:
+            _llm_service = GeminiLLMService(api_key=GEMINI_API_KEY)
+            return _llm_service
+        except Exception as e:
+            print(f"Failed to initialize GeminiLLMService: {e}")
+
+    _llm_service = SimulatedGeminiService()
+    return _llm_service
 
 def get_list_chats_usecase() -> ListChatsUseCase:
     return ListChatsUseCase(get_chat_repository())

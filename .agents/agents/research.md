@@ -9,7 +9,7 @@ tools:
   - read_url_content
 subagent: true
 mainAgent: false
-model: inherit
+model: pro
 commandExecutionPolicy: sandbox
 ---
 

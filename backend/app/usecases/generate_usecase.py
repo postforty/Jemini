@@ -29,8 +29,10 @@ class GenerateResponseUseCase:
             title = prompt[:25] + ("..." if len(prompt) > 25 else "")
             new_chat = await self.chat_repo.create(title=title, model=model)
             chat_id = new_chat.id
+            history = []
         else:
             chat_id = existing_chat.id
+            history = await self.message_repo.get_by_chat_id(chat_id)
 
         # 2. Save User Message
         user_msg = Message(
@@ -47,7 +49,12 @@ class GenerateResponseUseCase:
 
         # 4. Stream LLM chunks
         full_response = ""
-        async for chunk in self.llm_service.generate_stream(prompt, model):
+        async for chunk in self.llm_service.generate_stream(
+            prompt=prompt,
+            model=model,
+            history=history,
+            image_url=image_url
+        ):
             full_response += chunk
             yield f"data: {json.dumps({'type': 'chunk', 'text': chunk})}\n\n"
 
