@@ -94,12 +94,20 @@ class LangChainMultiVendorService(ILLMService):
                 streaming=True,
             )
 
-        # 4. Ollama (e.g., "ollama:llama3.2", "ollama:deepseek-r1")
+        # 4. Ollama (e.g., "ollama:gemma3:270m", "ollama:llama3.2", "gemma3:270m")
         if clean_model.startswith("ollama:"):
             actual_model = clean_model.removeprefix("ollama:")
             from langchain_ollama import ChatOllama
             return ChatOllama(
                 model=actual_model,
+                base_url=self.ollama_base_url,
+                temperature=0.7,
+            )
+
+        if clean_model.startswith("gemma"):
+            from langchain_ollama import ChatOllama
+            return ChatOllama(
+                model=clean_model,
                 base_url=self.ollama_base_url,
                 temperature=0.7,
             )

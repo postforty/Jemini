@@ -20,7 +20,7 @@ export const MODELS: ModelOption[] = [
   { id: 'claude-3-5-sonnet-latest', name: 'claude-3-5-sonnet',   desc: '정밀 코딩 및 분석 특화 (Anthropic)', provider: 'Anthropic' },
 
   // Ollama (Local)
-  { id: 'ollama:llama3.2',       name: 'ollama:llama3.2',       desc: '로컬 경량 오픈소스 모델 (Ollama)', provider: 'Ollama' },
+  { id: 'ollama:gemma3:270m',    name: 'ollama:gemma3:270m',    desc: '로컬 경량 오픈소스 모델 (Ollama)', provider: 'Ollama' },
 ];
 
 export const DEFAULT_MODEL = MODELS[0].id;
