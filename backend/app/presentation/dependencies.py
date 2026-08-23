@@ -84,3 +84,21 @@ def get_generate_response_usecase() -> GenerateResponseUseCase:
         get_message_repository(),
         get_llm_service()
     )
+
+from fastapi import Header
+
+async def get_current_user_id(authorization: Optional[str] = Header(None)) -> Optional[str]:
+    if not authorization or not authorization.startswith("Bearer "):
+        return None
+    token = authorization.split("Bearer ", 1)[1].strip()
+    if not token:
+        return None
+    try:
+        client = get_supabase_client()
+        user_res = client.auth.get_user(token)
+        if user_res and getattr(user_res, "user", None):
+            return user_res.user.id
+    except Exception:
+        return None
+    return None
+

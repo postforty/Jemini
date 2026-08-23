@@ -1,11 +1,12 @@
 import React from 'react';
 import { 
   Plus, Search, Image as ImageIcon, Video, Bookmark, 
-  Trash2, Settings, Menu, MessageSquare
+  Trash2, Settings, Menu, MessageSquare, LogIn, LogOut
 } from 'lucide-react';
-import { CURRENT_USER } from '@/entities/user';
+import { useUserStore } from '@/entities/user';
 import { useChatStore, fetchChats } from '@/entities/chat';
 import { deleteChat } from '@/features/delete-chat';
+import { signOut } from '@/features/auth';
 import styles from './Sidebar.module.css';
 
 export function Sidebar() {
@@ -17,6 +18,10 @@ export function Sidebar() {
   const setChats = useChatStore((s) => s.setChats);
   const setChatList = useChatStore((s) => s.setChatList);
 
+  const user = useUserStore((s) => s.user);
+  const setAuthModalOpen = useUserStore((s) => s.setAuthModalOpen);
+  const logout = useUserStore((s) => s.logout);
+
   const handleNewChat = () => setCurrentChatId(null);
   
   const handleDeleteChat = async (id: string) => {
@@ -25,6 +30,13 @@ export function Sidebar() {
     await deleteChat(id);
     const updatedChats = await fetchChats();
     setChatList(updatedChats);
+  };
+
+  const handleLogout = async () => {
+    await signOut();
+    logout();
+    setChats(() => []);
+    setCurrentChatId(null);
   };
 
   return (
@@ -119,15 +131,43 @@ export function Sidebar() {
 
       <div className={styles.sidebarFooter}>
         <div className={styles.userProfile}>
-          <div className={styles.avatar}>{CURRENT_USER.initials}</div>
-          {!collapsed && <span className={styles.userName}>{CURRENT_USER.name}</span>}
+          <div className={styles.avatar}>
+            {user.avatarUrl ? (
+              <img src={user.avatarUrl} alt={user.name} className={styles.avatarImg} />
+            ) : (
+              user.initials
+            )}
+          </div>
+          {!collapsed && (
+            <div className={styles.userInfo}>
+              <span className={styles.userName}>{user.name}</span>
+              {user.email && <span className={styles.userEmail}>{user.email}</span>}
+            </div>
+          )}
         </div>
+
         {!collapsed && (
-          <button className={styles.iconBtn} title="설정">
-            <Settings size={18} />
-          </button>
+          user.isGuest ? (
+            <button 
+              className={styles.loginBtn} 
+              onClick={() => setAuthModalOpen(true)}
+              title="로그인"
+            >
+              <LogIn size={14} />
+              <span>로그인</span>
+            </button>
+          ) : (
+            <button 
+              className={styles.iconBtn} 
+              onClick={handleLogout} 
+              title="로그아웃"
+            >
+              <LogOut size={16} />
+            </button>
+          )
         )}
       </div>
     </aside>
   );
 }
+

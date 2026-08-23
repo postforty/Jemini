@@ -39,13 +39,14 @@ class GenerateResponseUseCase:
         prompt: str,
         chat_id: Optional[str] = None,
         model: str = "gemini-3.1-flash-lite",
-        image_url: Optional[str] = None
+        image_url: Optional[str] = None,
+        user_id: Optional[str] = None
     ) -> AsyncGenerator[str, None]:
         # 1. Validate or Create Chat
         existing_chat = await self.chat_repo.get_by_id(chat_id) if chat_id else None
         if not existing_chat:
             title = prompt[:25] + ("..." if len(prompt) > 25 else "")
-            new_chat = await self.chat_repo.create(title=title, model=model)
+            new_chat = await self.chat_repo.create(title=title, model=model, user_id=user_id)
             chat_id = new_chat.id
             history = []
         else:

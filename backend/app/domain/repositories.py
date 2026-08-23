@@ -4,7 +4,7 @@ from app.domain.entities import Chat, Message
 
 class IChatRepository(ABC):
     @abstractmethod
-    async def get_all(self) -> List[Chat]:
+    async def get_all(self, user_id: Optional[str] = None) -> List[Chat]:
         pass
 
     @abstractmethod
@@ -12,7 +12,12 @@ class IChatRepository(ABC):
         pass
 
     @abstractmethod
-    async def create(self, title: str = "새 대화", model: str = "gemini-3.1-flash-lite") -> Chat:
+    async def create(
+        self,
+        title: str = "새 대화",
+        model: str = "gemini-3.1-flash-lite",
+        user_id: Optional[str] = None
+    ) -> Chat:
         pass
 
     @abstractmethod

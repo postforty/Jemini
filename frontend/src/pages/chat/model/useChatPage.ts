@@ -1,45 +1,92 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useChatStore, fetchChats, fetchChatMessages } from '@/entities/chat';
+import { useUserStore } from '@/entities/user';
+import { supabase } from '@/shared/api';
+import { mapSupabaseUser } from '@/features/auth';
 import { sendMessageStream } from '@/features/send-message';
 
 export function useChatPage() {
   const chats = useChatStore((s) => s.chats);
   const currentChatId = useChatStore((s) => s.currentChatId);
   const selectedModel = useChatStore((s) => s.selectedModel);
-  const isGenerating = useChatStore((s) => s.isGenerating);
   const setChats = useChatStore((s) => s.setChats);
   const setChatList = useChatStore((s) => s.setChatList);
   const setChatMessages = useChatStore((s) => s.setChatMessages);
   const setCurrentChatId = useChatStore((s) => s.setCurrentChatId);
   const setIsGenerating = useChatStore((s) => s.setIsGenerating);
 
-  // 1. Initial load from Supabase (SSOT)
+  const user = useUserStore((s) => s.user);
+  const setUser = useUserStore((s) => s.setUser);
+  const setAuthModalOpen = useUserStore((s) => s.setAuthModalOpen);
+  const setPendingPrompt = useUserStore((s) => s.setPendingPrompt);
+
+  const isHandlingPending = useRef(false);
+
+  // 1. Initialize Auth & listen to changes
   useEffect(() => {
-    let isMounted = true;
-    fetchChats().then((serverChats) => {
-      if (isMounted && serverChats.length > 0) {
-        setChatList(serverChats);
-        const state = useChatStore.getState();
-        if (!state.currentChatId) {
-          setCurrentChatId(serverChats[0].id);
+    // Check current session on mount
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      const initialUser = mapSupabaseUser(session?.user ?? null);
+      setUser(initialUser);
+      if (!initialUser.isGuest) {
+        fetchChats().then((serverChats) => {
+          setChatList(serverChats);
+          if (serverChats.length > 0) {
+            setCurrentChatId(serverChats[0].id);
+          }
+        });
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      const mapped = mapSupabaseUser(session?.user ?? null);
+      setUser(mapped);
+
+      if (mapped.isGuest) {
+        // Clear all chats on logout
+        setChats(() => []);
+        setCurrentChatId(null);
+      } else {
+        // Refresh chats specifically for this logged-in user
+        fetchChats().then((serverChats) => {
+          setChatList(serverChats);
+          const state = useChatStore.getState();
+          if (!state.currentChatId && serverChats.length > 0) {
+            setCurrentChatId(serverChats[0].id);
+          }
+        });
+      }
+
+      // If user logged in and has pending prompt, auto-send
+      if (!mapped.isGuest && !isHandlingPending.current) {
+        const pending = useUserStore.getState().pendingPrompt;
+        if (pending) {
+          isHandlingPending.current = true;
+          setAuthModalOpen(false);
+          setPendingPrompt(null);
+          // Wait a tick to ensure UI state is settled
+          setTimeout(() => {
+            handleSendMessage(pending.prompt, pending.image);
+            isHandlingPending.current = false;
+          }, 100);
         }
       }
     });
+
     return () => {
-      isMounted = false;
+      subscription.unsubscribe();
     };
   }, []);
 
   // 2. Load messages from Supabase when switching chats (skip if generating)
   useEffect(() => {
-    if (!currentChatId) return;
+    if (!currentChatId || currentChatId.startsWith('temp_')) return;
     const state = useChatStore.getState();
     if (state.isGenerating) return; // Prevent overwriting streaming messages
 
     const target = state.chats.find((c) => c.id === currentChatId);
     if (!target || target.messages.length === 0) {
       fetchChatMessages(currentChatId).then((messages) => {
-        // Double check not generating before updating
         if (!useChatStore.getState().isGenerating && messages.length > 0) {
           setChatMessages(currentChatId, messages);
         }
@@ -49,6 +96,19 @@ export function useChatPage() {
 
   const handleSendMessage = async (prompt: string, image: string | null) => {
     if (!prompt && !image) return;
+
+    const currentUser = useUserStore.getState().user;
+    const activeChat = useChatStore.getState().chats.find((c) => c.id === currentChatId);
+    const userMessageCount = activeChat
+      ? activeChat.messages.filter((m) => m.sender === 'user').length
+      : 0;
+
+    // Intercept 3rd question attempt for guest users
+    if (currentUser.isGuest && userMessageCount >= 2) {
+      setPendingPrompt({ prompt, image });
+      setAuthModalOpen(true);
+      return;
+    }
 
     let activeChatId = currentChatId;
     const isNewChat = !activeChatId || activeChatId.startsWith('temp_');
@@ -92,7 +152,7 @@ export function useChatPage() {
       let accumulatedText = '';
       await sendMessageStream({
         prompt,
-        chatId: isNewChat ? null : activeChatId,
+        chatId: isNewChat ? '' : (activeChatId || ''),
         model: selectedModel,
         imageUrl: image,
         onChatId: (serverChatId) => {
@@ -168,8 +228,11 @@ export function useChatPage() {
       }));
     } finally {
       setIsGenerating(false);
-      // Synchronize latest chat list from Supabase
-      fetchChats().then(setChatList);
+      // Synchronize latest chat list from Supabase for logged-in user
+      const currentUserState = useUserStore.getState().user;
+      if (!currentUserState.isGuest) {
+        fetchChats().then(setChatList);
+      }
     }
   };
 

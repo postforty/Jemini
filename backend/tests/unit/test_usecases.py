@@ -11,16 +11,19 @@ class MockChatRepository(IChatRepository):
     def __init__(self):
         self.chats = {}
 
-    async def get_all(self):
+    async def get_all(self, user_id=None):
+        if user_id:
+            return [c for c in self.chats.values() if c.user_id == user_id]
         return list(self.chats.values())
 
     async def get_by_id(self, chat_id: str):
         return self.chats.get(chat_id)
 
-    async def create(self, title: str = "새 대화", model: str = "gemini-3.1-flash-lite"):
-        chat = Chat(title=title, model=model)
+    async def create(self, title: str = "새 대화", model: str = "gemini-3.1-flash-lite", user_id=None):
+        chat = Chat(title=title, model=model, user_id=user_id)
         self.chats[chat.id] = chat
         return chat
+
 
     async def update_title(self, chat_id: str, title: str):
         if chat_id in self.chats:
@@ -81,6 +84,37 @@ async def test_create_and_list_chat_usecases():
     chats = await list_uc.execute()
     assert len(chats) == 1
     assert chats[0].id == chat.id
+
+@pytest.mark.asyncio
+async def test_user_isolation_usecases():
+    chat_repo = MockChatRepository()
+    create_uc = CreateChatUseCase(chat_repo)
+    list_uc = ListChatsUseCase(chat_repo)
+    del_uc = DeleteChatUseCase(chat_repo, MockMessageRepository())
+
+    # User A creates chat
+    chat_a = await create_uc.execute(title="User A Chat", user_id="user_a")
+    # User B creates chat
+    chat_b = await create_uc.execute(title="User B Chat", user_id="user_b")
+
+    # List as User A
+    chats_a = await list_uc.execute(user_id="user_a")
+    assert len(chats_a) == 1
+    assert chats_a[0].id == chat_a.id
+
+    # List as User B
+    chats_b = await list_uc.execute(user_id="user_b")
+    assert len(chats_b) == 1
+    assert chats_b[0].id == chat_b.id
+
+    # User B attempts to delete User A's chat (should fail)
+    del_fail = await del_uc.execute(chat_id=chat_a.id, user_id="user_b")
+    assert del_fail is False
+
+    # User A deletes their own chat (should succeed)
+    del_ok = await del_uc.execute(chat_id=chat_a.id, user_id="user_a")
+    assert del_ok is True
+
 
 @pytest.mark.asyncio
 async def test_generate_response_usecase():

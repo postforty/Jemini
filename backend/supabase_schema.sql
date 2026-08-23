@@ -5,11 +5,15 @@
 -- 1. Chats Table (대화 세션)
 CREATE TABLE IF NOT EXISTS chats (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL DEFAULT '새 대화',
     model VARCHAR(100) NOT NULL DEFAULT 'gemini-3.1-flash-lite',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Index for faster query by user_id
+CREATE INDEX IF NOT EXISTS idx_chats_user_id ON chats(user_id);
 
 -- 2. Messages Table (메시지 내역)
 CREATE TABLE IF NOT EXISTS messages (

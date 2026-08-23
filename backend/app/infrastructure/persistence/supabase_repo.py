@@ -7,13 +7,19 @@ class SupabaseChatRepository(IChatRepository):
     def __init__(self, client: Any):
         self.client = client
 
-    async def get_all(self) -> List[Chat]:
-        res = self.client.table("chats").select("*").order("created_at", desc=True).execute()
+    async def get_all(self, user_id: Optional[str] = None) -> List[Chat]:
+        query = self.client.table("chats").select("*")
+        if user_id:
+            query = query.eq("user_id", user_id)
+        else:
+            query = query.is_("user_id", "null")
+        res = query.order("created_at", desc=True).execute()
         return [
             Chat(
                 id=item["id"],
                 title=item.get("title", "새 대화"),
                 model=item.get("model", "gemini-3.1-flash-lite"),
+                user_id=item.get("user_id"),
                 created_at=item.get("created_at", datetime.now().isoformat()),
                 updated_at=item.get("updated_at", datetime.now().isoformat())
             )
@@ -28,17 +34,24 @@ class SupabaseChatRepository(IChatRepository):
                 id=item["id"],
                 title=item.get("title", "새 대화"),
                 model=item.get("model", "gemini-3.1-flash-lite"),
+                user_id=item.get("user_id"),
                 created_at=item.get("created_at", datetime.now().isoformat()),
                 updated_at=item.get("updated_at", datetime.now().isoformat())
             )
         return None
 
-    async def create(self, title: str = "새 대화", model: str = "gemini-3.1-flash-lite") -> Chat:
-        chat = Chat(title=title, model=model)
+    async def create(
+        self,
+        title: str = "새 대화",
+        model: str = "gemini-3.1-flash-lite",
+        user_id: Optional[str] = None
+    ) -> Chat:
+        chat = Chat(title=title, model=model, user_id=user_id)
         chat_data = {
             "id": chat.id,
             "title": chat.title,
             "model": chat.model,
+            "user_id": user_id,
             "created_at": chat.created_at,
             "updated_at": chat.updated_at
         }
@@ -49,6 +62,7 @@ class SupabaseChatRepository(IChatRepository):
                 id=item["id"],
                 title=item.get("title", title),
                 model=item.get("model", model),
+                user_id=item.get("user_id", user_id),
                 created_at=item.get("created_at", chat.created_at),
                 updated_at=item.get("updated_at", chat.updated_at)
             )
@@ -63,10 +77,12 @@ class SupabaseChatRepository(IChatRepository):
                 id=item["id"],
                 title=item["title"],
                 model=item["model"],
+                user_id=item.get("user_id"),
                 created_at=item["created_at"],
                 updated_at=item["updated_at"]
             )
         return None
+
 
     async def delete(self, chat_id: str) -> bool:
         existing = await self.get_by_id(chat_id)

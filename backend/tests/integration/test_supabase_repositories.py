@@ -22,10 +22,13 @@ async def test_supabase_chat_repository_crud():
     ])
     mock_select = MagicMock()
     mock_select.order.return_value = mock_order
+    mock_select.is_.return_value.order.return_value = mock_order
+    mock_select.eq.return_value.order.return_value = mock_order
     mock_table.select.return_value = mock_select
 
     repo = SupabaseChatRepository(mock_client)
     chats = await repo.get_all()
+
     assert len(chats) == 1
     assert chats[0].id == "chat-1"
     assert chats[0].title == "테스트 대화"

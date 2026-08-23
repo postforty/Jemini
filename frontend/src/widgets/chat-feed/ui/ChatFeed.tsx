@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import { useChatStore } from '@/entities/chat';
 import { ChatMessage } from '@/entities/message';
 import { sendMessageStream } from '@/features/send-message';
-import { CURRENT_USER } from '@/entities/user';
+import { useUserStore } from '@/entities/user';
 import styles from './ChatFeed.module.css';
 
 interface ChatFeedProps {
@@ -107,11 +107,15 @@ export function ChatFeed({ onSelectQuestion }: ChatFeedProps) {
     }
   };
 
+  const user = useUserStore((s) => s.user);
+
   return (
     <div className={styles.chatViewport}>
       {!activeChat || activeChat.messages.length === 0 ? (
         <div className={styles.heroGreeting}>
-          <h1 className={styles.heroTitle}>{CURRENT_USER.name}님, 안녕하세요. 어떻게 도와드릴까요?</h1>
+          <h1 className={styles.heroTitle}>
+            {user.isGuest ? '게스트님, 안녕하세요. 어떻게 도와드릴까요?' : `${user.name}님, 안녕하세요. 어떻게 도와드릴까요?`}
+          </h1>
         </div>
       ) : (
         <div className={styles.messageList}>
