@@ -58,13 +58,47 @@
   background-color: #e8f0fe;
 }
 
+.modelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 .modelName {
   font-size: 14px;
   font-weight: 500;
   color: var(--text-primary);
 }
 
+.proBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #6366f1;
+  background-color: rgba(99, 102, 241, 0.1);
+  padding: 2px 6px;
+  border-radius: 9999px;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+.activeProBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #d97706;
+  background-color: rgba(245, 158, 11, 0.12);
+  padding: 2px 6px;
+  border-radius: 9999px;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
 .modelDesc {
   font-size: 12px;
   color: var(--text-muted);
 }
+

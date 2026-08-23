@@ -5,6 +5,7 @@ export interface User {
   avatarUrl?: string;
   initials: string;
   isGuest: boolean;
+  isPro?: boolean;
 }
 
 export const GUEST_USER: User = {
@@ -12,4 +13,6 @@ export const GUEST_USER: User = {
   name: '게스트',
   initials: 'G',
   isGuest: true,
+  isPro: false,
 };
+

@@ -1,0 +1,328 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1.5rem;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal {
+  background: var(--bg-surface, #ffffff);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 1.5rem;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(99, 102, 241, 0.15);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:global(.dark) .modal {
+  background: #18181b;
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(129, 140, 248, 0.2);
+}
+
+.header {
+  padding: 1.75rem 1.75rem 1.25rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(168, 85, 247, 0.08) 100%);
+}
+
+:global(.dark) .header {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(168, 85, 247, 0.15) 100%);
+}
+
+.headerContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  width: fit-content;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+.title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+  margin: 0;
+}
+
+:global(.dark) .title {
+  color: #f4f4f5;
+}
+
+.subtitle {
+  font-size: 0.875rem;
+  color: var(--text-secondary, #6b7280);
+  margin: 0;
+}
+
+:global(.dark) .subtitle {
+  color: #a1a1aa;
+}
+
+.closeBtn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary, #9ca3af);
+  cursor: pointer;
+  padding: 0.4rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.closeBtn:hover {
+  background-color: var(--bg-hover, #f3f4f6);
+  color: var(--text-primary, #111827);
+}
+
+:global(.dark) .closeBtn:hover {
+  background-color: #27272a;
+  color: #fafafa;
+}
+
+.body {
+  padding: 1.5rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.targetModelBanner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 0.75rem;
+  font-size: 0.85rem;
+  color: #4f46e5;
+  font-weight: 500;
+}
+
+:global(.dark) .targetModelBanner {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.3);
+  color: #a5b4fc;
+}
+
+.targetModelName {
+  font-weight: 700;
+  background: rgba(99, 102, 241, 0.15);
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.35rem;
+}
+
+:global(.dark) .targetModelName {
+  background: rgba(99, 102, 241, 0.3);
+}
+
+.featuresList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.featureItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  color: var(--text-primary, #374151);
+}
+
+:global(.dark) .featureItem {
+  color: #d4d4d8;
+}
+
+.featureIcon {
+  color: #10b981;
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+}
+
+.priceCard {
+  background: linear-gradient(135deg, rgba(249, 250, 251, 1) 0%, rgba(243, 244, 246, 1) 100%);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+:global(.dark) .priceCard {
+  background: linear-gradient(135deg, #27272a 0%, #1f1f23 100%);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.priceLabel {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-secondary, #4b5563);
+}
+
+:global(.dark) .priceLabel {
+  color: #a1a1aa;
+}
+
+.priceValueWrapper {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+
+.priceValue {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #4f46e5;
+}
+
+:global(.dark) .priceValue {
+  color: #818cf8;
+}
+
+.pricePeriod {
+  font-size: 0.85rem;
+  color: var(--text-secondary, #6b7280);
+}
+
+:global(.dark) .pricePeriod {
+  color: #71717a;
+}
+
+.errorBox {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  font-size: 0.85rem;
+}
+
+:global(.dark) .errorBox {
+  background-color: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.tossPayBtn {
+  background: #0064ff;
+  color: #ffffff;
+  border: none;
+  padding: 0.9rem 1.25rem;
+  border-radius: 0.85rem;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.15s ease-in-out;
+  box-shadow: 0 4px 12px rgba(0, 100, 255, 0.3);
+}
+
+.tossPayBtn:hover:not(:disabled) {
+  background: #0052d4;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0, 100, 255, 0.4);
+}
+
+.tossPayBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.testPayBtn {
+  background: transparent;
+  color: var(--text-secondary, #6b7280);
+  border: 1px dashed var(--border-color, #d1d5db);
+  padding: 0.65rem 1rem;
+  border-radius: 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  transition: all 0.15s;
+}
+
+:global(.dark) .testPayBtn {
+  color: #a1a1aa;
+  border-color: #3f3f46;
+}
+
+.testPayBtn:hover:not(:disabled) {
+  background: rgba(99, 102, 241, 0.08);
+  color: #4f46e5;
+  border-color: #6366f1;
+}
+
+:global(.dark) .testPayBtn:hover:not(:disabled) {
+  background: rgba(99, 102, 241, 0.15);
+  color: #a5b4fc;
+  border-color: #818cf8;
+}
+
+.testPayBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.footerNote {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text-secondary, #9ca3af);
+  margin: 0;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}

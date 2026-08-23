@@ -3,8 +3,13 @@ import asyncio
 import re
 from typing import Optional, AsyncGenerator, List
 from app.domain.entities import Message
-from app.domain.repositories import IChatRepository, IMessageRepository
+from app.domain.repositories import IChatRepository, IMessageRepository, ISubscriptionRepository
 from app.domain.services import ILLMService
+
+def is_free_model(model: Optional[str]) -> bool:
+    if not model:
+        return True
+    return model == "gemini-3.1-flash-lite" or model.startswith("ollama")
 
 def _extract_questions_from_json(json_str: str) -> List[str]:
     clean = json_str.strip()
@@ -28,11 +33,13 @@ class GenerateResponseUseCase:
         self,
         chat_repo: IChatRepository,
         message_repo: IMessageRepository,
-        llm_service: ILLMService
+        llm_service: ILLMService,
+        subscription_repo: Optional[ISubscriptionRepository] = None
     ):
         self.chat_repo = chat_repo
         self.message_repo = message_repo
         self.llm_service = llm_service
+        self.subscription_repo = subscription_repo
 
     async def execute(
         self,
@@ -42,7 +49,20 @@ class GenerateResponseUseCase:
         image_url: Optional[str] = None,
         user_id: Optional[str] = None
     ) -> AsyncGenerator[str, None]:
+        # 0. Check Pro model permission
+        if not is_free_model(model):
+            if not user_id:
+                yield f"data: {json.dumps({'type': 'error', 'message': '선택하신 모델은 로그인 및 Pro 멤버십 결제 후 이용 가능합니다.'})}\n\n"
+                return
+
+            if self.subscription_repo:
+                sub = await self.subscription_repo.get_by_user_id(user_id)
+                if not sub or sub.status != "active":
+                    yield f"data: {json.dumps({'type': 'error', 'message': '선택하신 모델은 Pro 멤버십 결제 후 이용 가능합니다.'})}\n\n"
+                    return
+
         # 1. Validate or Create Chat
+
         existing_chat = await self.chat_repo.get_by_id(chat_id) if chat_id else None
         if not existing_chat:
             title = prompt[:25] + ("..." if len(prompt) > 25 else "")

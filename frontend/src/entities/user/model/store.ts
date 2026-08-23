@@ -10,9 +10,13 @@ export interface PendingPrompt {
 interface UserStore {
   user: User;
   isAuthModalOpen: boolean;
+  isPaymentModalOpen: boolean;
+  targetProModel: string | null;
   pendingPrompt: PendingPrompt | null;
   setUser: (user: User) => void;
+  setIsPro: (isPro: boolean) => void;
   setAuthModalOpen: (open: boolean) => void;
+  setPaymentModalOpen: (open: boolean, targetModel?: string | null) => void;
   setPendingPrompt: (pending: PendingPrompt | null) => void;
   logout: () => void;
 }
@@ -22,6 +26,8 @@ const PENDING_PROMPT_KEY = 'jemini_pending_prompt';
 export const useUserStore = create<UserStore>((set) => ({
   user: GUEST_USER,
   isAuthModalOpen: false,
+  isPaymentModalOpen: false,
+  targetProModel: null,
   pendingPrompt: (() => {
     try {
       const saved = sessionStorage.getItem(PENDING_PROMPT_KEY);
@@ -31,7 +37,13 @@ export const useUserStore = create<UserStore>((set) => ({
     }
   })(),
   setUser: (user) => set({ user }),
+  setIsPro: (isPro) =>
+    set((state) => ({
+      user: { ...state.user, isPro },
+    })),
   setAuthModalOpen: (open) => set({ isAuthModalOpen: open }),
+  setPaymentModalOpen: (open, targetModel = null) =>
+    set({ isPaymentModalOpen: open, targetProModel: targetModel }),
   setPendingPrompt: (pendingPrompt) => {
     try {
       if (pendingPrompt) {
@@ -48,6 +60,7 @@ export const useUserStore = create<UserStore>((set) => ({
     try {
       sessionStorage.removeItem(PENDING_PROMPT_KEY);
     } catch {}
-    set({ user: GUEST_USER, pendingPrompt: null });
+    set({ user: GUEST_USER, pendingPrompt: null, isPaymentModalOpen: false, targetProModel: null });
   },
 }));
+

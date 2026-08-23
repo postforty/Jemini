@@ -1,7 +1,12 @@
 from typing import List, Optional, Any
 from datetime import datetime
-from app.domain.entities import Chat, Message
-from app.domain.repositories import IChatRepository, IMessageRepository
+from app.domain.entities import Chat, Message, Payment, Subscription
+from app.domain.repositories import (
+    IChatRepository,
+    IMessageRepository,
+    IPaymentRepository,
+    ISubscriptionRepository
+)
 
 class SupabaseChatRepository(IChatRepository):
     def __init__(self, client: Any):
@@ -134,3 +139,113 @@ class SupabaseMessageRepository(IMessageRepository):
     async def delete_by_chat_id(self, chat_id: str) -> bool:
         self.client.table("messages").delete().eq("chat_id", chat_id).execute()
         return True
+
+class SupabasePaymentRepository(IPaymentRepository):
+    def __init__(self, client: Any):
+        self.client = client
+
+    async def add(self, payment: Payment) -> Payment:
+        data = {
+            "id": payment.id,
+            "payment_key": payment.payment_key,
+            "order_id": payment.order_id,
+            "order_name": payment.order_name,
+            "amount": payment.amount,
+            "method": payment.method,
+            "status": payment.status,
+            "user_id": payment.user_id,
+            "created_at": payment.created_at,
+        }
+        res = self.client.table("payments").insert(data).execute()
+        if res.data:
+            item = res.data[0]
+            return Payment(
+                id=item["id"],
+                payment_key=item["payment_key"],
+                order_id=item["order_id"],
+                order_name=item["order_name"],
+                amount=float(item["amount"]),
+                method=item.get("method"),
+                status=item["status"],
+                user_id=item.get("user_id"),
+                created_at=item.get("created_at", payment.created_at),
+            )
+        return payment
+
+    async def get_by_order_id(self, order_id: str) -> Optional[Payment]:
+        res = self.client.table("payments").select("*").eq("order_id", order_id).execute()
+        if res.data:
+            item = res.data[0]
+            return Payment(
+                id=item["id"],
+                payment_key=item["payment_key"],
+                order_id=item["order_id"],
+                order_name=item["order_name"],
+                amount=float(item["amount"]),
+                method=item.get("method"),
+                status=item["status"],
+                user_id=item.get("user_id"),
+                created_at=item.get("created_at"),
+            )
+        return None
+
+    async def get_by_user_id(self, user_id: str) -> List[Payment]:
+        res = self.client.table("payments").select("*").eq("user_id", user_id).order("created_at", desc=True).execute()
+        return [
+            Payment(
+                id=item["id"],
+                payment_key=item["payment_key"],
+                order_id=item["order_id"],
+                order_name=item["order_name"],
+                amount=float(item["amount"]),
+                method=item.get("method"),
+                status=item["status"],
+                user_id=item.get("user_id"),
+                created_at=item.get("created_at"),
+            )
+            for item in res.data
+        ]
+
+class SupabaseSubscriptionRepository(ISubscriptionRepository):
+    def __init__(self, client: Any):
+        self.client = client
+
+    async def get_by_user_id(self, user_id: str) -> Optional[Subscription]:
+        res = self.client.table("user_subscriptions").select("*").eq("user_id", user_id).execute()
+        if res.data:
+            item = res.data[0]
+            return Subscription(
+                user_id=item["user_id"],
+                plan_type=item.get("plan_type", "pro"),
+                status=item.get("status", "active"),
+                payment_id=item.get("payment_id"),
+                current_period_end=item.get("current_period_end"),
+                created_at=item.get("created_at", datetime.now().isoformat()),
+                updated_at=item.get("updated_at", datetime.now().isoformat()),
+            )
+        return None
+
+    async def upsert(self, subscription: Subscription) -> Subscription:
+        data = {
+            "user_id": subscription.user_id,
+            "plan_type": subscription.plan_type,
+            "status": subscription.status,
+            "payment_id": subscription.payment_id,
+            "current_period_end": subscription.current_period_end,
+            "created_at": subscription.created_at,
+            "updated_at": subscription.updated_at,
+        }
+        res = self.client.table("user_subscriptions").upsert(data).execute()
+        if res.data:
+            item = res.data[0]
+            return Subscription(
+                user_id=item["user_id"],
+                plan_type=item.get("plan_type", subscription.plan_type),
+                status=item.get("status", subscription.status),
+                payment_id=item.get("payment_id", subscription.payment_id),
+                current_period_end=item.get("current_period_end", subscription.current_period_end),
+                created_at=item.get("created_at", subscription.created_at),
+                updated_at=item.get("updated_at", subscription.updated_at),
+            )
+        return subscription
+

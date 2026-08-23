@@ -2,24 +2,38 @@ import os
 from typing import Optional
 from dotenv import load_dotenv
 
-from app.domain.repositories import IChatRepository, IMessageRepository
-from app.domain.services import ILLMService
-from app.infrastructure.persistence.supabase_repo import SupabaseChatRepository, SupabaseMessageRepository
+from app.domain.repositories import (
+    IChatRepository,
+    IMessageRepository,
+    IPaymentRepository,
+    ISubscriptionRepository
+)
+from app.domain.services import ILLMService, IPaymentGatewayService
+from app.infrastructure.persistence.supabase_repo import (
+    SupabaseChatRepository,
+    SupabaseMessageRepository,
+    SupabasePaymentRepository,
+    SupabaseSubscriptionRepository
+)
 from app.infrastructure.external.gemini_service import GeminiLLMService, SimulatedGeminiService
+from app.infrastructure.external.toss_payment_service import TossPaymentGatewayService
 from app.usecases.chat_usecases import ListChatsUseCase, CreateChatUseCase, DeleteChatUseCase, GetMessagesUseCase
 from app.usecases.generate_usecase import GenerateResponseUseCase
+from app.usecases.payment_usecases import ConfirmPaymentUseCase, GetUserSubscriptionUseCase
 
 load_dotenv()
 
 SUPABASE_URL = os.getenv("SUPABASE_URL", "").strip()
-SUPABASE_KEY = os.getenv("SUPABASE_KEY", "").strip()
+SUPABASE_KEY = os.getenv("SUPABASE_SECRET_KEY", "").strip() or os.getenv("SUPABASE_KEY", "").strip()
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip() or os.getenv("GOOGLE_API_KEY", "").strip()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip()
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "").strip()
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434").strip()
+TOSS_SECRET_KEY = os.getenv("TOSS_SECRET_KEY", "").strip()
 
 _supabase_client = None
 _llm_service: Optional[ILLMService] = None
+_payment_gateway_service: Optional[IPaymentGatewayService] = None
 
 def get_supabase_client():
     global _supabase_client
@@ -45,6 +59,21 @@ def get_chat_repository() -> IChatRepository:
 def get_message_repository() -> IMessageRepository:
     client = get_supabase_client()
     return SupabaseMessageRepository(client)
+
+def get_payment_repository() -> IPaymentRepository:
+    client = get_supabase_client()
+    return SupabasePaymentRepository(client)
+
+def get_subscription_repository() -> ISubscriptionRepository:
+    client = get_supabase_client()
+    return SupabaseSubscriptionRepository(client)
+
+def get_payment_gateway_service() -> IPaymentGatewayService:
+    global _payment_gateway_service
+    if _payment_gateway_service is not None:
+        return _payment_gateway_service
+    _payment_gateway_service = TossPaymentGatewayService(TOSS_SECRET_KEY or None)
+    return _payment_gateway_service
 
 def get_llm_service() -> ILLMService:
     global _llm_service
@@ -82,8 +111,19 @@ def get_generate_response_usecase() -> GenerateResponseUseCase:
     return GenerateResponseUseCase(
         get_chat_repository(),
         get_message_repository(),
-        get_llm_service()
+        get_llm_service(),
+        get_subscription_repository()
     )
+
+def get_confirm_payment_usecase() -> ConfirmPaymentUseCase:
+    return ConfirmPaymentUseCase(
+        get_payment_repository(),
+        get_subscription_repository(),
+        get_payment_gateway_service()
+    )
+
+def get_get_user_subscription_usecase() -> GetUserSubscriptionUseCase:
+    return GetUserSubscriptionUseCase(get_subscription_repository())
 
 from fastapi import Header
 
@@ -101,4 +141,5 @@ async def get_current_user_id(authorization: Optional[str] = Header(None)) -> Op
     except Exception:
         return None
     return None
+
 

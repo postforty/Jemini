@@ -1,7 +1,7 @@
 import React from 'react';
 import { 
   Plus, Search, Image as ImageIcon, Video, Bookmark, 
-  Trash2, Settings, Menu, MessageSquare, LogIn, LogOut
+  Trash2, Settings, Menu, MessageSquare, LogIn, LogOut, Sparkles
 } from 'lucide-react';
 import { useUserStore } from '@/entities/user';
 import { useChatStore, fetchChats } from '@/entities/chat';
@@ -20,6 +20,7 @@ export function Sidebar() {
 
   const user = useUserStore((s) => s.user);
   const setAuthModalOpen = useUserStore((s) => s.setAuthModalOpen);
+  const setPaymentModalOpen = useUserStore((s) => s.setPaymentModalOpen);
   const logout = useUserStore((s) => s.logout);
 
   const handleNewChat = () => setCurrentChatId(null);
@@ -140,7 +141,14 @@ export function Sidebar() {
           </div>
           {!collapsed && (
             <div className={styles.userInfo}>
-              <span className={styles.userName}>{user.name}</span>
+              <div className={styles.nameWithBadge}>
+                <span className={styles.userName}>{user.name}</span>
+                {user.isPro && (
+                  <span className={styles.proUserBadge} title="Jemini Pro 활성화됨">
+                    <Sparkles size={9} /> PRO
+                  </span>
+                )}
+              </div>
               {user.email && <span className={styles.userEmail}>{user.email}</span>}
             </div>
           )}
@@ -157,13 +165,25 @@ export function Sidebar() {
               <span>로그인</span>
             </button>
           ) : (
-            <button 
-              className={styles.iconBtn} 
-              onClick={handleLogout} 
-              title="로그아웃"
-            >
-              <LogOut size={16} />
-            </button>
+            <div className={styles.userActions}>
+              {!user.isPro && (
+                <button
+                  className={styles.upgradeBtn}
+                  onClick={() => setPaymentModalOpen(true)}
+                  title="Pro 멤버십 업그레이드"
+                >
+                  <Sparkles size={13} />
+                  <span>Pro</span>
+                </button>
+              )}
+              <button 
+                className={styles.iconBtn} 
+                onClick={handleLogout} 
+                title="로그아웃"
+              >
+                <LogOut size={16} />
+              </button>
+            </div>
           )
         )}
       </div>

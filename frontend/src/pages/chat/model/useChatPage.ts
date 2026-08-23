@@ -4,11 +4,13 @@ import { useUserStore } from '@/entities/user';
 import { supabase } from '@/shared/api';
 import { mapSupabaseUser } from '@/features/auth';
 import { sendMessageStream } from '@/features/send-message';
+import { fetchSubscriptionStatus, confirmPayment } from '@/features/payment';
 
 export function useChatPage() {
   const chats = useChatStore((s) => s.chats);
   const currentChatId = useChatStore((s) => s.currentChatId);
   const selectedModel = useChatStore((s) => s.selectedModel);
+  const setSelectedModel = useChatStore((s) => s.setSelectedModel);
   const setChats = useChatStore((s) => s.setChats);
   const setChatList = useChatStore((s) => s.setChatList);
   const setChatMessages = useChatStore((s) => s.setChatMessages);
@@ -17,18 +19,22 @@ export function useChatPage() {
 
   const user = useUserStore((s) => s.user);
   const setUser = useUserStore((s) => s.setUser);
+  const setIsPro = useUserStore((s) => s.setIsPro);
   const setAuthModalOpen = useUserStore((s) => s.setAuthModalOpen);
   const setPendingPrompt = useUserStore((s) => s.setPendingPrompt);
 
   const isHandlingPending = useRef(false);
 
-  // 1. Initialize Auth & listen to changes
+  // 1. Initialize Auth, Pro status & listen to changes
   useEffect(() => {
     // Check current session on mount
     supabase.auth.getSession().then(({ data: { session } }) => {
       const initialUser = mapSupabaseUser(session?.user ?? null);
       setUser(initialUser);
       if (!initialUser.isGuest) {
+        fetchSubscriptionStatus().then((sub) => {
+          setIsPro(sub.is_pro);
+        });
         fetchChats().then((serverChats) => {
           setChatList(serverChats);
           if (serverChats.length > 0) {
@@ -43,10 +49,14 @@ export function useChatPage() {
       setUser(mapped);
 
       if (mapped.isGuest) {
+        setIsPro(false);
         // Clear all chats on logout
         setChats(() => []);
         setCurrentChatId(null);
       } else {
+        fetchSubscriptionStatus().then((sub) => {
+          setIsPro(sub.is_pro);
+        });
         // Refresh chats specifically for this logged-in user
         fetchChats().then((serverChats) => {
           setChatList(serverChats);
@@ -73,10 +83,33 @@ export function useChatPage() {
       }
     });
 
+    // Check Toss Payments Redirect Callback URL parameters
+    const params = new URLSearchParams(window.location.search);
+    const paymentKey = params.get('paymentKey');
+    const orderId = params.get('orderId');
+    const amount = params.get('amount') || 9900;
+    const isPaymentSuccess = params.get('payment_success');
+
+    if ((isPaymentSuccess || paymentKey) && orderId) {
+      const key = paymentKey || `pk_redirect_${Date.now()}`;
+      confirmPayment({
+        paymentKey: key,
+        orderId,
+        amount: Number(amount) || 9900,
+      }).then(() => {
+        setIsPro(true);
+        const cleanUrl = window.location.origin + window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+      }).catch(err => {
+        console.error('Failed to confirm redirect payment:', err);
+      });
+    }
+
     return () => {
       subscription.unsubscribe();
     };
   }, []);
+
 
   // 2. Load messages from Supabase when switching chats (skip if generating)
   useEffect(() => {

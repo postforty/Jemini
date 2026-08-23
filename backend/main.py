@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 
 from app.presentation.api.v1.chats_router import router as chats_router
 from app.presentation.api.v1.generate_router import router as generate_router
+from app.presentation.api.v1.payments_router import router as payments_router
 
 load_dotenv()
 
@@ -19,6 +20,8 @@ app.add_middleware(
 
 app.include_router(chats_router)
 app.include_router(generate_router)
+app.include_router(payments_router)
+
 
 @app.get("/")
 def read_root():

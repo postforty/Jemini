@@ -10,7 +10,8 @@
 - Supabase MCP를 통해 실제 원격 프로젝트(`your-supabase-project`)에 마이그레이션 DDL을 실행하여 테이블 생성 완료:
   - `public.chats` (대화 세션 테이블)
   - `public.messages` (대화 메시지 테이블)
-- [backend/.env](backend/.env)에 Supabase URL 및 anon Key 반영 완료.
+- [backend/.env](backend/.env)에 Supabase URL 및 Secret Key(`sb_secret_...`) 반영 완료.
+- [frontend/.env](frontend/.env)에 Supabase Publishable Key(`VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...`) 반영 완료.
 
 ### 2. 백엔드 (Clean Architecture)
 - **In-Memory Fallback 제거**: [dependencies.py](backend/app/presentation/dependencies.py)에서 `InMemoryChatRepository` / `InMemoryMessageRepository` fallback 및 전역 변수를 완전히 제거하고, `SupabaseChatRepository` 및 `SupabaseMessageRepository`만 주입하도록 변경.
@@ -40,12 +41,10 @@
 
 ---
 
-## ⚠️ 보안 안내 (Row Level Security)
+## 🔒 보안 강화 (Row Level Security 적용 완료)
 
-> [!CAUTION]
-> Supabase PostgreSQL 테이블에 RLS(Row Level Security)가 현재 비활성화되어 있습니다.
-> 필요 시 Supabase 대시보드 또는 SQL Editor에서 아래 DDL을 적용하고 적절한 접근 정책(Policy)을 추가할 수 있습니다:
-> ```sql
-> ALTER TABLE public.chats ENABLE ROW LEVEL SECURITY;
-> ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
-> ```
+> [!NOTE]
+> Supabase MCP를 통해 `public.chats` 및 `public.messages` 테이블에 **Row Level Security(RLS) 활성화 및 사용자별 접근 정책(Policies) 적용이 완료**되었습니다.
+> - **인증된 사용자(`authenticated`)**: 본인 소유의 대화(`user_id = auth.uid()`) 및 해당 대화의 메시지만 CRUD 가능.
+> - **프론트엔드(`Publishable Key`)**: 브라우저를 통한 무단 직접 DB 접근 차단 및 행 단위 보안 정책 준수.
+> - **백엔드(`Secret Key`)**: 서버 사이드 관리자 권한으로 안전하게 대화 세션 및 스트리밍 메시지 영속화 처리.

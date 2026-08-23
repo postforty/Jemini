@@ -14,3 +14,15 @@ class ILLMService(ABC):
         """Generates a text stream chunk by chunk for the given prompt, model, history, and image."""
         pass
 
+class IPaymentGatewayService(ABC):
+    @abstractmethod
+    async def confirm_payment(
+        self,
+        payment_key: str,
+        order_id: str,
+        amount: float
+    ) -> dict:
+        """Confirms payment with payment gateway."""
+        pass
+
+

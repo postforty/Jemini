@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional
-from app.domain.entities import Chat, Message
+from app.domain.entities import Chat, Message, Payment, Subscription
 
 class IChatRepository(ABC):
     @abstractmethod
@@ -40,3 +40,26 @@ class IMessageRepository(ABC):
     @abstractmethod
     async def delete_by_chat_id(self, chat_id: str) -> bool:
         pass
+
+class IPaymentRepository(ABC):
+    @abstractmethod
+    async def add(self, payment: Payment) -> Payment:
+        pass
+
+    @abstractmethod
+    async def get_by_order_id(self, order_id: str) -> Optional[Payment]:
+        pass
+
+    @abstractmethod
+    async def get_by_user_id(self, user_id: str) -> List[Payment]:
+        pass
+
+class ISubscriptionRepository(ABC):
+    @abstractmethod
+    async def get_by_user_id(self, user_id: str) -> Optional[Subscription]:
+        pass
+
+    @abstractmethod
+    async def upsert(self, subscription: Subscription) -> Subscription:
+        pass
+

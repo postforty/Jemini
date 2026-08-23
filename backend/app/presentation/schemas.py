@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
 
 class MessageCreate(BaseModel):
@@ -32,3 +32,29 @@ class GenerateRequest(BaseModel):
     chat_id: Optional[str] = None
     model: str = "gemini-3.1-flash-lite"
     image_url: Optional[str] = None
+
+class PaymentConfirmRequest(BaseModel):
+    payment_key: str = Field(..., alias="paymentKey")
+    order_id: str = Field(..., alias="orderId")
+    amount: float
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class SubscriptionResponse(BaseModel):
+    user_id: Optional[str] = None
+    plan_type: str = "free"
+    status: str = "inactive"
+    is_pro: bool = False
+    current_period_end: Optional[str] = None
+
+class PaymentResponse(BaseModel):
+    id: str
+    payment_key: str
+    order_id: str
+    order_name: str
+    amount: float
+    status: str
+    method: Optional[str] = None
+    created_at: str
+

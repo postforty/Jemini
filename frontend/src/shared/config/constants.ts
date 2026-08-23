@@ -1,5 +1,13 @@
 export const APP_NAME = 'Jemini';
+
+export const TOSS_CLIENT_KEY = import.meta.env.VITE_TOSS_CLIENT_KEY || 'test_ck_your_client_key_here';
+export const PRO_PLAN_NAME = 'Jemini Pro 멤버십';
+export const PRO_PLAN_PRICE = 9900;
+export const PRO_PLAN_DESC = 'Gemini 3.5, GPT-4o, Claude 3.5 Sonnet 등 최상위 AI 모델 무제한 이용';
+
+
 export const INITIAL_CHATS = [
+
   {
     id: '11111111-1111-1111-1111-111111111111',
     title: '커피 앱 기획 비판적 분석',
