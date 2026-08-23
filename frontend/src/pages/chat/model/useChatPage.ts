@@ -1,29 +1,68 @@
-import { useChatStore } from '@/entities/chat';
+import { useEffect } from 'react';
+import { useChatStore, fetchChats, fetchChatMessages } from '@/entities/chat';
 import { sendMessageStream } from '@/features/send-message';
 
 export function useChatPage() {
   const chats = useChatStore((s) => s.chats);
   const currentChatId = useChatStore((s) => s.currentChatId);
   const selectedModel = useChatStore((s) => s.selectedModel);
+  const isGenerating = useChatStore((s) => s.isGenerating);
   const setChats = useChatStore((s) => s.setChats);
+  const setChatList = useChatStore((s) => s.setChatList);
+  const setChatMessages = useChatStore((s) => s.setChatMessages);
   const setCurrentChatId = useChatStore((s) => s.setCurrentChatId);
   const setIsGenerating = useChatStore((s) => s.setIsGenerating);
+
+  // 1. Initial load from Supabase (SSOT)
+  useEffect(() => {
+    let isMounted = true;
+    fetchChats().then((serverChats) => {
+      if (isMounted && serverChats.length > 0) {
+        setChatList(serverChats);
+        const state = useChatStore.getState();
+        if (!state.currentChatId) {
+          setCurrentChatId(serverChats[0].id);
+        }
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // 2. Load messages from Supabase when switching chats (skip if generating)
+  useEffect(() => {
+    if (!currentChatId) return;
+    const state = useChatStore.getState();
+    if (state.isGenerating) return; // Prevent overwriting streaming messages
+
+    const target = state.chats.find((c) => c.id === currentChatId);
+    if (!target || target.messages.length === 0) {
+      fetchChatMessages(currentChatId).then((messages) => {
+        // Double check not generating before updating
+        if (!useChatStore.getState().isGenerating && messages.length > 0) {
+          setChatMessages(currentChatId, messages);
+        }
+      });
+    }
+  }, [currentChatId]);
 
   const handleSendMessage = async (prompt: string, image: string | null) => {
     if (!prompt && !image) return;
 
-    let targetChatId = currentChatId;
+    let activeChatId = currentChatId;
+    const isNewChat = !activeChatId || activeChatId.startsWith('temp_');
 
-    if (!targetChatId) {
-      targetChatId = 'chat_' + Date.now();
+    if (isNewChat) {
+      activeChatId = 'temp_' + Date.now();
       const newChat = {
-        id: targetChatId,
+        id: activeChatId,
         title: prompt.slice(0, 22) + (prompt.length > 22 ? '...' : ''),
         model: selectedModel,
         messages: []
       };
       setChats((prev) => [newChat, ...prev]);
-      setCurrentChatId(targetChatId);
+      setCurrentChatId(activeChatId);
     }
 
     const userMessage = {
@@ -33,38 +72,43 @@ export function useChatPage() {
       image_url: image
     };
 
+    const assistantMessageId = 'msg_ai_' + Date.now();
+    const initialAssistantMessage = {
+      id: assistantMessageId,
+      sender: 'assistant' as const,
+      content: '',
+      image_url: null
+    };
+
     setChats((prev) => prev.map(c => 
-      c.id === targetChatId ? { ...c, messages: [...c.messages, userMessage] } : c
+      c.id === activeChatId 
+        ? { ...c, messages: [...c.messages, userMessage, initialAssistantMessage] } 
+        : c
     ));
 
     setIsGenerating(true);
-
-    const assistantMessageId = 'msg_ai_' + Date.now();
-    setChats((prev) => prev.map(c => 
-      c.id === targetChatId ? { ...c, messages: [...c.messages, { id: assistantMessageId, sender: 'assistant', content: '', image_url: null }] } : c
-    ));
 
     try {
       let accumulatedText = '';
       await sendMessageStream({
         prompt,
-        chatId: targetChatId,
+        chatId: isNewChat ? null : activeChatId,
         model: selectedModel,
         imageUrl: image,
         onChatId: (serverChatId) => {
-          if (serverChatId && serverChatId !== targetChatId) {
-            const oldId = targetChatId;
-            targetChatId = serverChatId;
-            setCurrentChatId(serverChatId);
+          if (serverChatId && serverChatId !== activeChatId) {
+            const oldId = activeChatId;
+            activeChatId = serverChatId;
             setChats(prevChats => prevChats.map(c => 
               c.id === oldId ? { ...c, id: serverChatId } : c
             ));
+            setCurrentChatId(serverChatId);
           }
         },
         onChunk: (text) => {
           accumulatedText += text;
           setChats(prevChats => prevChats.map(c => {
-            if (c.id === targetChatId) {
+            if (c.id === activeChatId) {
               const updatedMsgs = c.messages.map(m => 
                 m.id === assistantMessageId ? { ...m, content: accumulatedText } : m
               );
@@ -75,7 +119,7 @@ export function useChatPage() {
         },
         onSuggestedQuestions: (questions) => {
           setChats(prevChats => prevChats.map(c => {
-            if (c.id === targetChatId) {
+            if (c.id === activeChatId) {
               const updatedMsgs = c.messages.map(m => 
                 m.id === assistantMessageId ? { ...m, suggestedQuestions: questions } : m
               );
@@ -103,7 +147,7 @@ export function useChatPage() {
         curr += replyText.slice(i, i + 3);
         await new Promise(r => setTimeout(r, 20));
         setChats(prevChats => prevChats.map(c => {
-          if (c.id === targetChatId) {
+          if (c.id === activeChatId) {
             const updatedMsgs = c.messages.map(m => 
               m.id === assistantMessageId ? { ...m, content: curr } : m
             );
@@ -114,7 +158,7 @@ export function useChatPage() {
       }
 
       setChats(prevChats => prevChats.map(c => {
-        if (c.id === targetChatId) {
+        if (c.id === activeChatId) {
           const updatedMsgs = c.messages.map(m => 
             m.id === assistantMessageId ? { ...m, suggestedQuestions: fallbackQuestions } : m
           );
@@ -124,6 +168,8 @@ export function useChatPage() {
       }));
     } finally {
       setIsGenerating(false);
+      // Synchronize latest chat list from Supabase
+      fetchChats().then(setChatList);
     }
   };
 

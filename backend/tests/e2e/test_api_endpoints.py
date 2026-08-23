@@ -12,11 +12,17 @@ def test_read_root():
     assert "Clean Architecture" in data["message"]
 
 def test_list_chats_api():
+    create_res = client.post("/api/chats", json={"title": "List Test Chat", "model": "gemini-3.1-flash-lite"})
+    assert create_res.status_code == 200
+    created_id = create_res.json()["id"]
+
     response = client.get("/api/chats")
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, list)
-    assert len(data) >= 2  # Seeded initial chats
+    assert any(c["id"] == created_id for c in data)
+
+    client.delete(f"/api/chats/{created_id}")
 
 def test_create_and_delete_chat_api():
     # 1. Create chat

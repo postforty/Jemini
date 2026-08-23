@@ -69,6 +69,9 @@ class SupabaseChatRepository(IChatRepository):
         return None
 
     async def delete(self, chat_id: str) -> bool:
+        existing = await self.get_by_id(chat_id)
+        if not existing:
+            return False
         self.client.table("chats").delete().eq("id", chat_id).execute()
         return True
 
@@ -77,7 +80,7 @@ class SupabaseMessageRepository(IMessageRepository):
         self.client = client
 
     async def get_by_chat_id(self, chat_id: str) -> List[Message]:
-        res = self.client.table("messages").select("*").eq("chat_id", chat_id).order("created_at", asc=True).execute()
+        res = self.client.table("messages").select("*").eq("chat_id", chat_id).order("created_at", desc=False).execute()
         return [
             Message(
                 id=item["id"],

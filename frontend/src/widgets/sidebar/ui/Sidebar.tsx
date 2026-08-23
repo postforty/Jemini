@@ -4,7 +4,7 @@ import {
   Trash2, Settings, Menu, MessageSquare
 } from 'lucide-react';
 import { CURRENT_USER } from '@/entities/user';
-import { useChatStore } from '@/entities/chat';
+import { useChatStore, fetchChats } from '@/entities/chat';
 import { deleteChat } from '@/features/delete-chat';
 import styles from './Sidebar.module.css';
 
@@ -15,6 +15,7 @@ export function Sidebar() {
   const currentChatId = useChatStore((s) => s.currentChatId);
   const setCurrentChatId = useChatStore((s) => s.setCurrentChatId);
   const setChats = useChatStore((s) => s.setChats);
+  const setChatList = useChatStore((s) => s.setChatList);
 
   const handleNewChat = () => setCurrentChatId(null);
   
@@ -22,6 +23,8 @@ export function Sidebar() {
     setChats(prev => prev.filter(c => c.id !== id));
     if (currentChatId === id) setCurrentChatId(null);
     await deleteChat(id);
+    const updatedChats = await fetchChats();
+    setChatList(updatedChats);
   };
 
   return (
