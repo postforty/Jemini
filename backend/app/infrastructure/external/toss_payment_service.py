@@ -3,14 +3,14 @@ import httpx
 from typing import Optional
 from app.domain.services import IPaymentGatewayService
 
-DEFAULT_TEST_SECRET_KEY = "test_sk_your_secret_key_here"
-
-
 class TossPaymentGatewayService(IPaymentGatewayService):
     def __init__(self, secret_key: Optional[str] = None):
-        self.secret_key = secret_key or DEFAULT_TEST_SECRET_KEY
-        encoded_key = base64.b64encode(f"{self.secret_key}:".encode("utf-8")).decode("utf-8")
-        self.auth_header = f"Basic {encoded_key}"
+        self.secret_key = (secret_key or "").strip()
+        if self.secret_key:
+            encoded_key = base64.b64encode(f"{self.secret_key}:".encode("utf-8")).decode("utf-8")
+            self.auth_header = f"Basic {encoded_key}"
+        else:
+            self.auth_header = ""
         self.confirm_url = "https://api.tosspayments.com/v1/payments/confirm"
 
     async def confirm_payment(
@@ -19,6 +19,8 @@ class TossPaymentGatewayService(IPaymentGatewayService):
         order_id: str,
         amount: float
     ) -> dict:
+        if not self.secret_key:
+            raise ValueError("TOSS_SECRET_KEY is not configured on the server.")
         headers = {
             "Authorization": self.auth_header,
             "Content-Type": "application/json",

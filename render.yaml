@@ -57,4 +57,4 @@ services:
       - key: VITE_SUPABASE_PUBLISHABLE_KEY
         sync: false
       - key: VITE_TOSS_CLIENT_KEY
-        value: test_ck_your_client_key_here
+        sync: false

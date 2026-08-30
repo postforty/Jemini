@@ -30,6 +30,10 @@ export function PaymentModal({ onSuccess }: PaymentModalProps) {
 
   // 1. Toss Payments SDK Checkout Flow
   const handleTossPayment = async () => {
+    if (!TOSS_CLIENT_KEY) {
+      setErrorMsg('토스페이먼츠 클라이언트 키(VITE_TOSS_CLIENT_KEY)가 설정되지 않았습니다. 개발/테스트용 즉시 승인을 이용하시거나 환경 변수를 설정해 주세요.');
+      return;
+    }
     setIsLoading(true);
     setErrorMsg(null);
     try {

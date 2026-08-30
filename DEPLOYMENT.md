@@ -119,7 +119,7 @@ flowchart LR
    - `VITE_API_BASE_URL`: `https://jemini-backend.onrender.com` *(Step 4-1에서 생성된 백엔드 URL)*
    - `VITE_SUPABASE_URL`: `https://your-project.supabase.co`
    - `VITE_SUPABASE_PUBLISHABLE_KEY`: `your-supabase-anon-key`
-   - `VITE_TOSS_CLIENT_KEY`: `test_ck_your_client_key_here`
+   - `VITE_TOSS_CLIENT_KEY`: `your-toss-client-key` (또는 `test_ck_...`)
 4. **`Create Static Site`** 클릭하여 배포 진행
 5. 배포 완료 후 좌측 메뉴 **`Redirects/Rewrites`**로 이동하여 SPA 라우팅 규칙 추가:
    - **Source**: `/*`
