@@ -35,8 +35,9 @@ services:
   # ==========================================
   # 2. Frontend Service (React + Vite SPA)
   # ==========================================
-  - type: static
+  - type: web
     name: jemini-frontend
+    runtime: static
     region: singapore
     plan: free
     rootDir: frontend
