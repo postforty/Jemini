@@ -1,6 +1,7 @@
 from typing import List, Optional, Any
 from datetime import datetime
 from app.domain.entities import Chat, Message, Payment, Subscription
+from app.infrastructure.security.cipher import AES256GCMCipher
 from app.domain.repositories import (
     IChatRepository,
     IMessageRepository,
@@ -9,8 +10,9 @@ from app.domain.repositories import (
 )
 
 class SupabaseChatRepository(IChatRepository):
-    def __init__(self, client: Any):
+    def __init__(self, client: Any, cipher: AES256GCMCipher):
         self.client = client
+        self.cipher = cipher
 
     async def get_all(self, user_id: Optional[str] = None) -> List[Chat]:
         query = self.client.table("chats").select("*")
@@ -22,7 +24,7 @@ class SupabaseChatRepository(IChatRepository):
         return [
             Chat(
                 id=item["id"],
-                title=item.get("title", "새 대화"),
+                title=self.cipher.decrypt(item.get("title")) or "새 대화",
                 model=item.get("model", "gemini-3.1-flash-lite"),
                 user_id=item.get("user_id"),
                 created_at=item.get("created_at", datetime.now().isoformat()),
@@ -37,7 +39,7 @@ class SupabaseChatRepository(IChatRepository):
             item = res.data[0]
             return Chat(
                 id=item["id"],
-                title=item.get("title", "새 대화"),
+                title=self.cipher.decrypt(item.get("title")) or "새 대화",
                 model=item.get("model", "gemini-3.1-flash-lite"),
                 user_id=item.get("user_id"),
                 created_at=item.get("created_at", datetime.now().isoformat()),
@@ -54,7 +56,7 @@ class SupabaseChatRepository(IChatRepository):
         chat = Chat(title=title, model=model, user_id=user_id)
         chat_data = {
             "id": chat.id,
-            "title": chat.title,
+            "title": self.cipher.encrypt(chat.title),
             "model": chat.model,
             "user_id": user_id,
             "created_at": chat.created_at,
@@ -65,7 +67,7 @@ class SupabaseChatRepository(IChatRepository):
             item = res.data[0]
             return Chat(
                 id=item["id"],
-                title=item.get("title", title),
+                title=chat.title,
                 model=item.get("model", model),
                 user_id=item.get("user_id", user_id),
                 created_at=item.get("created_at", chat.created_at),
@@ -75,12 +77,12 @@ class SupabaseChatRepository(IChatRepository):
 
     async def update_title(self, chat_id: str, title: str) -> Optional[Chat]:
         now_str = datetime.now().isoformat()
-        res = self.client.table("chats").update({"title": title, "updated_at": now_str}).eq("id", chat_id).execute()
+        res = self.client.table("chats").update({"title": self.cipher.encrypt(title), "updated_at": now_str}).eq("id", chat_id).execute()
         if res.data:
             item = res.data[0]
             return Chat(
                 id=item["id"],
-                title=item["title"],
+                title=title,
                 model=item["model"],
                 user_id=item.get("user_id"),
                 created_at=item["created_at"],
@@ -97,8 +99,9 @@ class SupabaseChatRepository(IChatRepository):
         return True
 
 class SupabaseMessageRepository(IMessageRepository):
-    def __init__(self, client: Any):
+    def __init__(self, client: Any, cipher: AES256GCMCipher):
         self.client = client
+        self.cipher = cipher
 
     async def get_by_chat_id(self, chat_id: str) -> List[Message]:
         res = self.client.table("messages").select("*").eq("chat_id", chat_id).order("created_at", desc=False).execute()
@@ -107,7 +110,7 @@ class SupabaseMessageRepository(IMessageRepository):
                 id=item["id"],
                 chat_id=item["chat_id"],
                 sender=item["sender"],
-                content=item["content"],
+                content=self.cipher.decrypt(item["content"]) or "",
                 image_url=item.get("image_url"),
                 created_at=item.get("created_at", datetime.now().isoformat())
             )
@@ -119,7 +122,7 @@ class SupabaseMessageRepository(IMessageRepository):
             "id": message.id,
             "chat_id": message.chat_id,
             "sender": message.sender,
-            "content": message.content,
+            "content": self.cipher.encrypt(message.content),
             "image_url": message.image_url,
             "created_at": message.created_at
         }
@@ -130,7 +133,7 @@ class SupabaseMessageRepository(IMessageRepository):
                 id=item["id"],
                 chat_id=item["chat_id"],
                 sender=item["sender"],
-                content=item["content"],
+                content=message.content,
                 image_url=item.get("image_url"),
                 created_at=item.get("created_at", message.created_at)
             )

@@ -17,6 +17,7 @@ from app.infrastructure.persistence.supabase_repo import (
 )
 from app.infrastructure.external.gemini_service import GeminiLLMService, SimulatedGeminiService
 from app.infrastructure.external.toss_payment_service import TossPaymentGatewayService
+from app.infrastructure.security.cipher import AES256GCMCipher
 from app.usecases.chat_usecases import ListChatsUseCase, CreateChatUseCase, DeleteChatUseCase, GetMessagesUseCase
 from app.usecases.generate_usecase import GenerateResponseUseCase
 from app.usecases.payment_usecases import ConfirmPaymentUseCase, GetUserSubscriptionUseCase
@@ -30,8 +31,10 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip()
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "").strip()
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434").strip()
 TOSS_SECRET_KEY = os.getenv("TOSS_SECRET_KEY", "").strip()
+CHAT_ENCRYPTION_KEY = os.getenv("CHAT_ENCRYPTION_KEY", "").strip()
 
 _supabase_client = None
+_cipher: Optional[AES256GCMCipher] = None
 _llm_service: Optional[ILLMService] = None
 _payment_gateway_service: Optional[IPaymentGatewayService] = None
 
@@ -52,13 +55,24 @@ def get_supabase_client():
         print(f"Failed to initialize Supabase client: {e}")
         raise RuntimeError(f"Failed to connect to Supabase: {e}")
 
+def get_cipher() -> AES256GCMCipher:
+    global _cipher
+    if _cipher is not None:
+        return _cipher
+    
+    if not CHAT_ENCRYPTION_KEY or "your-32byte" in CHAT_ENCRYPTION_KEY:
+        raise RuntimeError("CHAT_ENCRYPTION_KEY must be set in .env for encryption")
+        
+    _cipher = AES256GCMCipher(CHAT_ENCRYPTION_KEY)
+    return _cipher
+
 def get_chat_repository() -> IChatRepository:
     client = get_supabase_client()
-    return SupabaseChatRepository(client)
+    return SupabaseChatRepository(client, get_cipher())
 
 def get_message_repository() -> IMessageRepository:
     client = get_supabase_client()
-    return SupabaseMessageRepository(client)
+    return SupabaseMessageRepository(client, get_cipher())
 
 def get_payment_repository() -> IPaymentRepository:
     client = get_supabase_client()

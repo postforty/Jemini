@@ -1,10 +1,18 @@
+import os
+import base64
 import pytest
 from unittest.mock import MagicMock
 from app.domain.entities import Chat, Message
 from app.infrastructure.persistence.supabase_repo import SupabaseChatRepository, SupabaseMessageRepository
+from app.infrastructure.security.cipher import AES256GCMCipher
+
+@pytest.fixture
+def cipher():
+    key = base64.b64encode(os.urandom(32)).decode('utf-8')
+    return AES256GCMCipher(key)
 
 @pytest.mark.asyncio
-async def test_supabase_chat_repository_crud():
+async def test_supabase_chat_repository_crud(cipher):
     mock_client = MagicMock()
     mock_table = MagicMock()
     mock_client.table.return_value = mock_table
@@ -14,7 +22,7 @@ async def test_supabase_chat_repository_crud():
     mock_order.execute.return_value = MagicMock(data=[
         {
             "id": "chat-1",
-            "title": "테스트 대화",
+            "title": cipher.encrypt("테스트 대화"),
             "model": "gemini-3.1-flash-lite",
             "created_at": "2026-08-23T12:00:00",
             "updated_at": "2026-08-23T12:00:00"
@@ -26,7 +34,7 @@ async def test_supabase_chat_repository_crud():
     mock_select.eq.return_value.order.return_value = mock_order
     mock_table.select.return_value = mock_select
 
-    repo = SupabaseChatRepository(mock_client)
+    repo = SupabaseChatRepository(mock_client, cipher)
     chats = await repo.get_all()
 
     assert len(chats) == 1
@@ -38,7 +46,7 @@ async def test_supabase_chat_repository_crud():
     mock_eq.execute.return_value = MagicMock(data=[
         {
             "id": "chat-1",
-            "title": "테스트 대화",
+            "title": cipher.encrypt("테스트 대화"),
             "model": "gemini-3.1-flash-lite",
             "created_at": "2026-08-23T12:00:00",
             "updated_at": "2026-08-23T12:00:00"
@@ -48,13 +56,14 @@ async def test_supabase_chat_repository_crud():
     chat = await repo.get_by_id("chat-1")
     assert chat is not None
     assert chat.id == "chat-1"
+    assert chat.title == "테스트 대화"
 
     # Mock create
     mock_insert = MagicMock()
     mock_insert.execute.return_value = MagicMock(data=[
         {
             "id": "new-chat-id",
-            "title": "새 대화",
+            "title": cipher.encrypt("새 대화"),
             "model": "gemini-3.1-flash-lite",
             "created_at": "2026-08-23T12:00:00",
             "updated_at": "2026-08-23T12:00:00"
@@ -75,7 +84,7 @@ async def test_supabase_chat_repository_crud():
 
 
 @pytest.mark.asyncio
-async def test_supabase_message_repository_crud():
+async def test_supabase_message_repository_crud(cipher):
     mock_client = MagicMock()
     mock_table = MagicMock()
     mock_client.table.return_value = mock_table
@@ -87,7 +96,7 @@ async def test_supabase_message_repository_crud():
             "id": "msg-1",
             "chat_id": "chat-1",
             "sender": "user",
-            "content": "안녕하세요",
+            "content": cipher.encrypt("안녕하세요"),
             "image_url": None,
             "created_at": "2026-08-23T12:00:00"
         }
@@ -98,7 +107,7 @@ async def test_supabase_message_repository_crud():
     mock_select.eq.return_value = mock_eq
     mock_table.select.return_value = mock_select
 
-    repo = SupabaseMessageRepository(mock_client)
+    repo = SupabaseMessageRepository(mock_client, cipher)
     messages = await repo.get_by_chat_id("chat-1")
     assert len(messages) == 1
     assert messages[0].content == "안녕하세요"
@@ -110,7 +119,7 @@ async def test_supabase_message_repository_crud():
             "id": "msg-2",
             "chat_id": "chat-1",
             "sender": "assistant",
-            "content": "반갑습니다",
+            "content": cipher.encrypt("반갑습니다"),
             "image_url": None,
             "created_at": "2026-08-23T12:01:00"
         }
