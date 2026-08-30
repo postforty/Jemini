@@ -11,8 +11,8 @@ services:
     region: singapore
     plan: free
     rootDir: backend
-    buildCommand: pip install uv && uv pip install -r pyproject.toml --system
-    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m uvicorn main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /
     envVars:
       - key: PYTHON_VERSION

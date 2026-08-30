@@ -95,8 +95,8 @@ flowchart LR
    - **Branch**: `main`
    - **Root Directory**: `backend`
    - **Runtime**: `Python 3`
-   - **Build Command**: `pip install uv && uv pip install -r pyproject.toml --system`
-   - **Start Command**: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `python -m uvicorn main:app --host 0.0.0.0 --port $PORT`
    - **Plan Type**: `Free`
 3. **Advanced** ➡️ **Environment Variables**에 다음 키-값 추가:
    - `PYTHON_VERSION`: `3.10.14`
